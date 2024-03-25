@@ -212,11 +212,9 @@ exports.createVehicleForBranch = async (req, res, next) => {
   };
 
   const branch = await Branch.findById(branchId).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: true,
+      data,
     });
   });
 
@@ -258,11 +256,9 @@ exports.getBranchByIdPopulated = async (req, res, next) => {
   const branchId = req.params.id;
 
   const branch = await Branch.findById(branchId).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: true,
+      data,
     });
   });
 
@@ -296,14 +292,12 @@ exports.getBranchByIdPopulated = async (req, res, next) => {
 exports.getDriversForBranch = async (req, res, next) => {
   const branchId = req.params.id;
 
-  console.log()
+  console.log();
 
   const branch = await Branch.findById(branchId).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: true,
+      data,
     });
   });
 
