@@ -3,8 +3,6 @@ const cors = require("cors");
 const helmet = require("helmet");
 const { UserController } = require("./controllers/UserController");
 
-const functions = require("firebase-functions");
-
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -23,4 +21,4 @@ app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
 
-exports.api = functions.https.onRequest(app);
+module.exports = app;
