@@ -1,24 +1,16 @@
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const { UserController } = require("./controllers/UserController");
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const routes = require('./routes');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(helmet());
 
-const port = 5000;
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-app.post("/user", UserController.registerUser);
-app.get("/user/:id", UserController.getUser);
-
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+app.use('/api/v1', routes);
+app.use('/', (req, res) => {
+  res.send('Welcome to Waste Wise API');
 });
 
 module.exports = app;
