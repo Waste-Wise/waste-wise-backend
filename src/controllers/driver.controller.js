@@ -41,7 +41,7 @@ exports.getAllDrivers = async (req, res, next) => {
     })
     .catch((error) => {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: true,
+        success: false,
         error,
       });
     });
@@ -53,7 +53,7 @@ exports.getDriverById = async (req, res, next) => {
 
   const driver = await Driver.findById(id).catch((error) => {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: true,
+      success: false,
       error,
     });
   });
@@ -104,11 +104,9 @@ exports.deleteDriverById = async (req, res, next) => {
   const id = req.params.id;
 
   const driver = await Driver.findById(id).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      error,
     });
   });
 
@@ -128,7 +126,7 @@ exports.deleteDriverById = async (req, res, next) => {
     })
     .catch((error) => {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: true,
+        success: false,
         message: 'Driver deletion failled',
         error,
       });

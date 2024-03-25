@@ -73,12 +73,6 @@ exports.getBranchById = async (req, res, next) => {
 exports.updatebranchById = async (req, res, next) => {
   const id = req.params.id;
 
-  const { name } = req.body;
-
-  const branchObj = {
-    name,
-  };
-
   let branch = await Branch.findById(id).catch((error) => {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
@@ -93,7 +87,7 @@ exports.updatebranchById = async (req, res, next) => {
     });
   }
 
-  branch = await Branch.findByIdAndUpdate(id, branchObj, {
+  branch = await Branch.findByIdAndUpdate(id, req.body, {
     new: true,
   });
 
@@ -243,7 +237,7 @@ exports.createVehicleForBranch = async (req, res, next) => {
     });
 };
 
-// /:id/populate
+// GET /:id/populate
 exports.getBranchByIdPopulated = async (req, res, next) => {
   const branchId = req.params.id;
 
@@ -278,7 +272,7 @@ exports.getBranchByIdPopulated = async (req, res, next) => {
     });
 };
 
-// /:id/drivers
+// GET /:id/drivers
 exports.getDriversForBranch = async (req, res, next) => {
   const branchId = req.params.id;
 
@@ -312,7 +306,7 @@ exports.getDriversForBranch = async (req, res, next) => {
     });
 };
 
-// /:id/vehicles
+// GET /:id/vehicles
 exports.getVehiclesForBranch = async (req, res, next) => {
   const branchId = req.params.id;
 

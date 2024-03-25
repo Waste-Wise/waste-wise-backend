@@ -38,7 +38,7 @@ exports.getAllVehicles = async (req, res, next) => {
     })
     .catch((error) => {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: true,
+        success: false,
         error,
       });
     });
@@ -49,11 +49,9 @@ exports.getVehicleById = async (req, res, next) => {
   const id = req.params.id;
 
   const vehicle = await Vehicle.findById(id).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      error,
     });
   });
 
@@ -75,11 +73,9 @@ exports.updateVehicleById = async (req, res, next) => {
   const id = req.params.id;
 
   let vehicle = await Vehicle.findById(id).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      error,
     });
   });
 
@@ -105,11 +101,9 @@ exports.deleteVehicleById = async (req, res, next) => {
   const id = req.params.id;
 
   const vehicle = await Vehicle.findById(id).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      error,
     });
   });
 
@@ -129,7 +123,7 @@ exports.deleteVehicleById = async (req, res, next) => {
     })
     .catch((error) => {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: true,
+        success: false,
         message: 'Vehicle deletion failled',
         error,
       });

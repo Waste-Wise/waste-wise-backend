@@ -25,7 +25,4 @@ router.route('/:id/populate').get(getBranchByIdPopulated);
 router.route('/:id/drivers').get(getDriversForBranch);
 router.route('/:id/vehicles').get(getVehiclesForBranch);
 
-
-
-
 module.exports = router;
