@@ -291,3 +291,81 @@ exports.getBranchByIdPopulated = async (req, res, next) => {
       });
     });
 };
+
+// /:id/drivers
+exports.getDriversForBranch = async (req, res, next) => {
+  const branchId = req.params.id;
+
+  console.log()
+
+  const branch = await Branch.findById(branchId).catch((error) => {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        data,
+      });
+    });
+  });
+
+  if (!branch) {
+    return res.status(StatusCodes.NOT_FOUND).json({
+      success: false,
+      message: 'Branch not found',
+    });
+  }
+
+  await Branch.findById(branchId)
+    .populate('drivers')
+    .then((data) => {
+      res.status(StatusCodes.OK).json({
+        success: true,
+        data: data.drivers,
+      });
+    })
+    .catch((error) => {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
+        return res.status(StatusCodes.OK).json({
+          success: true,
+          data,
+        });
+      });
+    });
+};
+
+// /:id/vehicles
+exports.getVehiclesForBranch = async (req, res, next) => {
+  const branchId = req.params.id;
+
+  const branch = await Branch.findById(branchId).catch((error) => {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        data,
+      });
+    });
+  });
+
+  if (!branch) {
+    return res.status(StatusCodes.NOT_FOUND).json({
+      success: false,
+      message: 'Branch not found',
+    });
+  }
+
+  await Branch.findById(branchId)
+    .populate('vehicles')
+    .then((data) => {
+      res.status(StatusCodes.OK).json({
+        success: true,
+        data: data.vehicles,
+      });
+    })
+    .catch((error) => {
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
+        return res.status(StatusCodes.OK).json({
+          success: true,
+          data,
+        });
+      });
+    });
+};
