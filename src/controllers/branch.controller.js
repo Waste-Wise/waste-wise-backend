@@ -161,7 +161,7 @@ exports.createDriverForBranch = async (req, res, next) => {
   const branch = await Branch.findById(branchId).catch((error) => {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
       return res.status(StatusCodes.OK).json({
-        success: true,
+        success: false,
         data,
       });
     });
@@ -213,7 +213,7 @@ exports.createVehicleForBranch = async (req, res, next) => {
 
   const branch = await Branch.findById(branchId).catch((error) => {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: true,
+      success: false,
       data,
     });
   });
@@ -279,11 +279,9 @@ exports.getBranchByIdPopulated = async (req, res, next) => {
       });
     })
     .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-        return res.status(StatusCodes.OK).json({
-          success: true,
-          data,
-        });
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        error,
       });
     });
 };
@@ -292,12 +290,10 @@ exports.getBranchByIdPopulated = async (req, res, next) => {
 exports.getDriversForBranch = async (req, res, next) => {
   const branchId = req.params.id;
 
-  console.log();
-
   const branch = await Branch.findById(branchId).catch((error) => {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: true,
-      data,
+      error,
     });
   });
 
@@ -317,11 +313,9 @@ exports.getDriversForBranch = async (req, res, next) => {
       });
     })
     .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-        return res.status(StatusCodes.OK).json({
-          success: true,
-          data,
-        });
+      return res.status(StatusCodes.OK).json({
+        success: false,
+        error,
       });
     });
 };
@@ -331,11 +325,9 @@ exports.getVehiclesForBranch = async (req, res, next) => {
   const branchId = req.params.id;
 
   const branch = await Branch.findById(branchId).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: true,
+      data,
     });
   });
 
@@ -355,11 +347,9 @@ exports.getVehiclesForBranch = async (req, res, next) => {
       });
     })
     .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-        return res.status(StatusCodes.OK).json({
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
           success: true,
           data,
         });
-      });
     });
 };
