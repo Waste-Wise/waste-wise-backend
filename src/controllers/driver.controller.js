@@ -52,11 +52,9 @@ exports.getDriverById = async (req, res, next) => {
   const id = req.params.id;
 
   const driver = await Driver.findById(id).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: true,
+      data,
     });
   });
 
@@ -69,7 +67,7 @@ exports.getDriverById = async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    data,
+    driver,
   });
 };
 
