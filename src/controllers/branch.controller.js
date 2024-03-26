@@ -3,51 +3,37 @@ const Branch = require('../models/branch');
 const Driver = require('../models/driver');
 const Vehicle = require('../models/vehicle');
 const ErrorHandler = require('../utils/ErrorHandler');
+const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 
 // POST /create
-exports.createBranch = async (req, res, next) => {
+exports.createBranch = catchAsyncErrors(async (req, res, next) => {
   const { name } = req.body;
 
   const branchObj = {
     name,
   };
 
-  Branch.create(branchObj)
-    .then((data) => {
-      res.status(StatusCodes.CREATED).json({
-        success: true,
-        message: 'Branch created successfully',
-        data,
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        message: 'Branch creation failed',
-        error,
-      });
+  Branch.create(branchObj).then((data) => {
+    res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: 'Branch created successfully',
+      data,
     });
-};
+  });
+});
 
 // GET /
-exports.getAllBranches = async (req, res, next) => {
-  Branch.find()
-    .then((data) => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error,
-      });
+exports.getAllBranches = catchAsyncErrors(async (req, res, next) => {
+  Branch.find().then((data) => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data,
     });
-};
+  });
+});
 
 // GET /:id
-exports.getBranchById = async (req, res, next) => {
+exports.getBranchById = catchAsyncErrors(async (req, res, next) => {
   const branch = await Branch.findById(req.params.id);
 
   if (!branch) {
@@ -58,10 +44,10 @@ exports.getBranchById = async (req, res, next) => {
     success: true,
     branch,
   });
-};
+});
 
 // PATCH /:id
-exports.updatebranchById = async (req, res, next) => {
+exports.updatebranchById = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
 
   let branch = await Branch.findById(id);
@@ -78,10 +64,10 @@ exports.updatebranchById = async (req, res, next) => {
     success: true,
     branch,
   });
-};
+});
 
 // DELETE /:id
-exports.deleteBranchById = async (req, res, next) => {
+exports.deleteBranchById = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
 
   const branch = await Branch.findById(id);
@@ -90,24 +76,16 @@ exports.deleteBranchById = async (req, res, next) => {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  Branch.findByIdAndDelete(id)
-    .then(() => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        message: 'Branch deleted successfully',
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        message: 'Branch deletion failled',
-        error,
-      });
+  Branch.findByIdAndDelete(id).then(() => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Branch deleted successfully',
     });
-};
+  });
+});
 
 // POST /:id/drivers/create
-exports.createDriverForBranch = async (req, res, next) => {
+exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.id;
 
   const { empNum, name, email, nic, mobileNumber, password } = req.body;
@@ -127,34 +105,20 @@ exports.createDriverForBranch = async (req, res, next) => {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  const driver = await Driver.create(driverObj).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      message: 'Driver creation failed',
-      error,
-    });
-  });
+  const driver = await Driver.create(driverObj);
 
   branch.drivers.push(driver._id);
 
-  await branch
-    .save()
-    .then((data) => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error,
-      });
+  await branch.save().then((data) => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data,
     });
-};
+  });
+});
 
 // POST /:id/vehicles/create
-exports.createVehicleForBranch = async (req, res, next) => {
+exports.createVehicleForBranch = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.id;
 
   const { number, type } = req.body;
@@ -170,34 +134,20 @@ exports.createVehicleForBranch = async (req, res, next) => {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  const vehicle = await Vehicle.create(vehicleObj).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      message: 'Vehicle creation failed',
-      error,
-    });
-  });
+  const vehicle = await Vehicle.create(vehicleObj);
 
   branch.vehicles.push(vehicle._id);
 
-  await branch
-    .save()
-    .then((data) => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error,
-      });
+  await branch.save().then((data) => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data,
     });
-};
+  });
+});
 
 // GET /:id/populate
-exports.getBranchByIdPopulated = async (req, res, next) => {
+exports.getBranchByIdPopulated = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.id;
 
   const branch = await Branch.findById(branchId);
@@ -214,17 +164,11 @@ exports.getBranchByIdPopulated = async (req, res, next) => {
         success: true,
         data,
       });
-    })
-    .catch((error) => {
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error,
-      });
     });
-};
+});
 
 // GET /:id/drivers
-exports.getDriversForBranch = async (req, res, next) => {
+exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.id;
 
   const branch = await Branch.findById(branchId);
@@ -240,17 +184,11 @@ exports.getDriversForBranch = async (req, res, next) => {
         success: true,
         data: data.drivers,
       });
-    })
-    .catch((error) => {
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error,
-      });
     });
-};
+});
 
 // GET /:id/vehicles
-exports.getVehiclesForBranch = async (req, res, next) => {
+exports.getVehiclesForBranch = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.id;
 
   const branch = await Branch.findById(branchId);
@@ -266,11 +204,5 @@ exports.getVehiclesForBranch = async (req, res, next) => {
         success: true,
         data: data.vehicles,
       });
-    })
-    .catch((error) => {
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error,
-      });
     });
-};
+});
