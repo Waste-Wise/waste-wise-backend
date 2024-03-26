@@ -9,6 +9,7 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
+// config env for localhost
 dotenv.config({ path: 'config/config.env' });
 
 // connect database
