@@ -1,5 +1,6 @@
 const { StatusCodes } = require('http-status-codes');
 const Driver = require('../models/driver');
+const ErrorHandler = require('../utils/ErrorHandler');
 
 // POST /create
 exports.createDriver = async (req, res, next) => {
@@ -51,18 +52,10 @@ exports.getAllDrivers = async (req, res, next) => {
 exports.getDriverById = async (req, res, next) => {
   const id = req.params.id;
 
-  const driver = await Driver.findById(id).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const driver = await Driver.findById(id);
 
   if (!driver) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Driver not found',
-    });
+    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
   }
 
   res.status(StatusCodes.OK).json({
@@ -75,18 +68,10 @@ exports.getDriverById = async (req, res, next) => {
 exports.updateDriverById = async (req, res, next) => {
   const id = req.params.id;
 
-  let driver = await Driver.findById(id).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  let driver = await Driver.findById(id);
 
   if (!driver) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Driver not found',
-    });
+    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
   }
 
   driver = await Driver.findByIdAndUpdate(id, req.body, {
@@ -103,18 +88,10 @@ exports.updateDriverById = async (req, res, next) => {
 exports.deleteDriverById = async (req, res, next) => {
   const id = req.params.id;
 
-  const driver = await Driver.findById(id).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const driver = await Driver.findById(id);
 
   if (!driver) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Driver not found',
-    });
+    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
   }
 
   Driver.findByIdAndDelete(id)

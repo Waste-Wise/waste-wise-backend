@@ -1,5 +1,6 @@
 const { StatusCodes } = require('http-status-codes');
 const Vehicle = require('../models/vehicle');
+const ErrorHandler = require('../utils/ErrorHandler');
 
 // POST /create
 exports.createVehicle = async (req, res, next) => {
@@ -48,18 +49,10 @@ exports.getAllVehicles = async (req, res, next) => {
 exports.getVehicleById = async (req, res, next) => {
   const id = req.params.id;
 
-  const vehicle = await Vehicle.findById(id).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const vehicle = await Vehicle.findById(id);
 
   if (!vehicle) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Vehicle not found',
-    });
+    return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
   }
 
   res.status(StatusCodes.OK).json({
@@ -72,18 +65,10 @@ exports.getVehicleById = async (req, res, next) => {
 exports.updateVehicleById = async (req, res, next) => {
   const id = req.params.id;
 
-  let vehicle = await Vehicle.findById(id).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  let vehicle = await Vehicle.findById(id);
 
   if (!vehicle) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Vehicle not found',
-    });
+    return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
   }
 
   vehicle = await Vehicle.findByIdAndUpdate(id, req.body, {
@@ -100,18 +85,10 @@ exports.updateVehicleById = async (req, res, next) => {
 exports.deleteVehicleById = async (req, res, next) => {
   const id = req.params.id;
 
-  const vehicle = await Vehicle.findById(id).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const vehicle = await Vehicle.findById(id)
 
   if (!vehicle) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Vehicle not found',
-    });
+    return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
   }
 
   Vehicle.findByIdAndDelete(id)

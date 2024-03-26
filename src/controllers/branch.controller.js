@@ -2,6 +2,7 @@ const { StatusCodes } = require('http-status-codes');
 const Branch = require('../models/branch');
 const Driver = require('../models/driver');
 const Vehicle = require('../models/vehicle');
+const ErrorHandler = require('../utils/ErrorHandler');
 
 // POST /create
 exports.createBranch = async (req, res, next) => {
@@ -47,20 +48,10 @@ exports.getAllBranches = async (req, res, next) => {
 
 // GET /:id
 exports.getBranchById = async (req, res, next) => {
-  const id = req.params.id;
-
-  const branch = await Branch.findById(id).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const branch = await Branch.findById(req.params.id);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
   res.status(StatusCodes.OK).json({
@@ -73,18 +64,10 @@ exports.getBranchById = async (req, res, next) => {
 exports.updatebranchById = async (req, res, next) => {
   const id = req.params.id;
 
-  let branch = await Branch.findById(id).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  let branch = await Branch.findById(id);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Driver not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
   branch = await Branch.findByIdAndUpdate(id, req.body, {
@@ -101,18 +84,10 @@ exports.updatebranchById = async (req, res, next) => {
 exports.deleteBranchById = async (req, res, next) => {
   const id = req.params.id;
 
-  const branch = await Branch.findById(id).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const branch = await Branch.findById(id);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
   Branch.findByIdAndDelete(id)
@@ -146,18 +121,10 @@ exports.createDriverForBranch = async (req, res, next) => {
     password,
   };
 
-  const branch = await Branch.findById(branchId).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const branch = await Branch.findById(branchId);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
   const driver = await Driver.create(driverObj).catch((error) => {
@@ -197,18 +164,10 @@ exports.createVehicleForBranch = async (req, res, next) => {
     type,
   };
 
-  const branch = await Branch.findById(branchId).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const branch = await Branch.findById(branchId);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
   const vehicle = await Vehicle.create(vehicleObj).catch((error) => {
@@ -241,18 +200,10 @@ exports.createVehicleForBranch = async (req, res, next) => {
 exports.getBranchByIdPopulated = async (req, res, next) => {
   const branchId = req.params.id;
 
-  const branch = await Branch.findById(branchId).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const branch = await Branch.findById(branchId);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
   await Branch.findById(branchId)
@@ -276,18 +227,10 @@ exports.getBranchByIdPopulated = async (req, res, next) => {
 exports.getDriversForBranch = async (req, res, next) => {
   const branchId = req.params.id;
 
-  const branch = await Branch.findById(branchId).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const branch = await Branch.findById(branchId);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
   await Branch.findById(branchId)
@@ -310,18 +253,10 @@ exports.getDriversForBranch = async (req, res, next) => {
 exports.getVehiclesForBranch = async (req, res, next) => {
   const branchId = req.params.id;
 
-  const branch = await Branch.findById(branchId).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const branch = await Branch.findById(branchId);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
   await Branch.findById(branchId)
