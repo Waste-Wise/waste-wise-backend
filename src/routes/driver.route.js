@@ -6,6 +6,7 @@ const {
   updateDriverById,
   deleteDriverById,
   assignVehicleToDriver,
+  unassignVehicle,
 } = require('../controllers/driver.controller');
 
 const router = express.Router();
@@ -16,6 +17,7 @@ router.route('/:id').get(getDriverById);
 router.route('/:id').patch(updateDriverById);
 router.route('/:id').delete(deleteDriverById);
 router.route('/:driverId/assign/:vehicleId').put(assignVehicleToDriver);
+router.route('/:id/unassign').delete(unassignVehicle);
 
 
 module.exports = router;

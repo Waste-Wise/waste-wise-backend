@@ -90,7 +90,7 @@ exports.deleteDriverById = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// PUT /:driverId/:vehicleId
+// PUT /:driverId/assign/:vehicleId
 exports.assignVehicleToDriver = catchAsyncErrors(async (req, res, next) => {
   const {driverId, vehicleId} = req.params;
 
@@ -122,8 +122,34 @@ exports.assignVehicleToDriver = catchAsyncErrors(async (req, res, next) => {
   await driver.save();
   await vehicle.save();
 
-  res.status(200).json({
+  res.status(StatusCodes.OK).json({
     status: true,
     message: 'Driver assigned the vehicle successfully'
+  });
+});
+
+// DELETE /:id/unassign
+exports.unassignVehicle = catchAsyncErrors(async (req, res, next) => {
+  const id = req.params.id;
+
+  const driver = await Driver.findById(id);
+
+  if (!driver) {
+    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+  }
+
+  if(!driver.asssignedVehicle) {
+    return next(new ErrorHandler('Vehicle is not assigned to the driver', StatusCodes.CONFLICT));
+  }
+
+  await Vehicle.findOneAndUpdate({_id: driver.asssignedVehicle._id}, {isDriverAssigned: false});
+
+  driver.asssignedVehicle = null;
+
+  await driver.save();
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Vehicle unassigned successfully'
   });
 });
