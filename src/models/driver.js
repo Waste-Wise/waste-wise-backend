@@ -14,7 +14,6 @@ const driverSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      unique: true,
     },
     nic: {
       type: String,
