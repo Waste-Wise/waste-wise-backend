@@ -5,7 +5,7 @@ const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 
 // POST /create
 exports.createDriver = catchAsyncErrors(async (req, res, next) => {
-  const { empNum, name, email, nic, mobileNumber, password } = req.body;
+  const { empNum, name, email, nic, mobileNumber, password, avatar } = req.body;
 
   const driverObj = {
     empNum,
@@ -14,6 +14,7 @@ exports.createDriver = catchAsyncErrors(async (req, res, next) => {
     nic,
     mobileNumber,
     password,
+    avatar
   };
 
   Driver.create(driverObj).then((data) => {

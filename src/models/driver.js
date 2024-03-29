@@ -30,7 +30,12 @@ const driverSchema = new mongoose.Schema(
       ref: 'Vehicle',
     },
     assignedRoute: {
-      type: String,
+      start: {
+        type: String
+      },
+      end: {
+        type: String
+      }
     },
     role: {
       type: String,
@@ -43,12 +48,7 @@ const driverSchema = new mongoose.Schema(
       select: false,
     },
     avatar: {
-      public_id: {
-        type: String,
-      },
-      uri: {
-        type: String,
-      },
+      type: String
     },
   },
   { timestamps: true }
