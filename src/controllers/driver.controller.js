@@ -2,6 +2,7 @@ const { StatusCodes } = require('http-status-codes');
 const Driver = require('../models/driver');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
+const Vehicle = require('../models/vehicle');
 
 // POST /create
 exports.createDriver = catchAsyncErrors(async (req, res, next) => {
@@ -86,5 +87,43 @@ exports.deleteDriverById = catchAsyncErrors(async (req, res, next) => {
       success: true,
       message: 'Driver deleted successfully',
     });
+  });
+});
+
+// PUT /:driverId/:vehicleId
+exports.assignVehicleToDriver = catchAsyncErrors(async (req, res, next) => {
+  const {driverId, vehicleId} = req.params;
+
+  const driver = await Driver.findById(driverId);
+
+  if (!driver) {
+    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+  }
+
+  const vehicle = await Vehicle.findById(vehicleId);
+
+  if (!vehicle) {
+    return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
+  }
+
+  if(vehicle.isDriverAssigned) {
+    return next(new ErrorHandler('Vehicle already assigned', StatusCodes.CONFLICT));
+  }
+
+  const previousAssignedVehicle = driver.asssignedVehicle;
+
+  if(previousAssignedVehicle) {
+    await Vehicle.findOneAndUpdate({_id: previousAssignedVehicle._id}, {isDriverAssigned: false});
+  }
+
+  driver.asssignedVehicle = vehicle._id;
+  vehicle.isDriverAssigned = true;
+
+  await driver.save();
+  await vehicle.save();
+
+  res.status(200).json({
+    status: true,
+    message: 'Driver assigned the vehicle successfully'
   });
 });
