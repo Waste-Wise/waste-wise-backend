@@ -25,17 +25,12 @@ const driverSchema = new mongoose.Schema(
       required: [true, 'Mobile Number is required'],
       unique: true,
     },
-    asssignedVehicle: {
+    assignedVehicle: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vehicle',
     },
     assignedRoute: {
-      start: {
-        type: String
-      },
-      end: {
-        type: String
-      }
+      type: String,
     },
     role: {
       type: String,
@@ -48,7 +43,7 @@ const driverSchema = new mongoose.Schema(
       select: false,
     },
     avatar: {
-      type: String
+      type: String,
     },
   },
   { timestamps: true }

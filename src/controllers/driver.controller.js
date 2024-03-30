@@ -3,10 +3,21 @@ const Driver = require('../models/driver');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const Vehicle = require('../models/vehicle');
+const mongoose = require('mongoose');
 
 // POST /create
 exports.createDriver = catchAsyncErrors(async (req, res, next) => {
-  const { empNum, name, email, nic, mobileNumber, password, avatar } = req.body;
+  const {
+    empNum,
+    name,
+    email,
+    nic,
+    mobileNumber,
+    password,
+    avatar,
+    assignedRoute,
+    assignedVehicle,
+  } = req.body;
 
   const driverObj = {
     empNum,
@@ -16,10 +27,38 @@ exports.createDriver = catchAsyncErrors(async (req, res, next) => {
     mobileNumber,
     password,
     avatar,
-    assignedRoute
   };
 
-  Driver.create(driverObj).then((data) => {
+  if (avatar) {
+    driverObj.avatar = avatar;
+  }
+
+  if (assignedRoute) {
+    driverObj.assignedRoute = assignedRoute;
+  }
+
+  const vehicleObjId = new mongoose.Types.ObjectId(assignedVehicle);
+  if (assignedVehicle) {
+    const vehicle = await Vehicle.findById(vehicleObjId);
+
+    if (!vehicle) {
+      return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
+    }
+
+    if (vehicle.isDriverAssigned) {
+      return next(
+        new ErrorHandler('Vehicle already assigned', StatusCodes.CONFLICT)
+      );
+    }
+
+    vehicle.isDriverAssigned = true;
+
+    driverObj.assignedVehicle = vehicleObjId;
+
+    await vehicle.save();
+  }
+
+  Driver.create(driverObj).then(() => {
     res.status(StatusCodes.CREATED).json({
       success: true,
       message: 'Driver created successfully',
@@ -93,7 +132,7 @@ exports.deleteDriverById = catchAsyncErrors(async (req, res, next) => {
 
 // PUT /:driverId/assign/:vehicleId
 exports.assignVehicleToDriver = catchAsyncErrors(async (req, res, next) => {
-  const {driverId, vehicleId} = req.params;
+  const { driverId, vehicleId } = req.params;
 
   const driver = await Driver.findById(driverId);
 
@@ -107,14 +146,19 @@ exports.assignVehicleToDriver = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
   }
 
-  if(vehicle.isDriverAssigned) {
-    return next(new ErrorHandler('Vehicle already assigned', StatusCodes.CONFLICT));
+  if (vehicle.isDriverAssigned) {
+    return next(
+      new ErrorHandler('Vehicle already assigned', StatusCodes.CONFLICT)
+    );
   }
 
   const previousAssignedVehicle = driver.asssignedVehicle;
 
-  if(previousAssignedVehicle) {
-    await Vehicle.findOneAndUpdate({_id: previousAssignedVehicle._id}, {isDriverAssigned: false});
+  if (previousAssignedVehicle) {
+    await Vehicle.findOneAndUpdate(
+      { _id: previousAssignedVehicle._id },
+      { isDriverAssigned: false }
+    );
   }
 
   driver.asssignedVehicle = vehicle._id;
@@ -125,7 +169,7 @@ exports.assignVehicleToDriver = catchAsyncErrors(async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     status: true,
-    message: 'Driver assigned the vehicle successfully'
+    message: 'Driver assigned the vehicle successfully',
   });
 });
 
@@ -139,11 +183,19 @@ exports.unassignVehicle = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
   }
 
-  if(!driver.asssignedVehicle) {
-    return next(new ErrorHandler('Vehicle is not assigned to the driver', StatusCodes.CONFLICT));
+  if (!driver.asssignedVehicle) {
+    return next(
+      new ErrorHandler(
+        'Vehicle is not assigned to the driver',
+        StatusCodes.CONFLICT
+      )
+    );
   }
 
-  await Vehicle.findOneAndUpdate({_id: driver.asssignedVehicle._id}, {isDriverAssigned: false});
+  await Vehicle.findOneAndUpdate(
+    { _id: driver.asssignedVehicle._id },
+    { isDriverAssigned: false }
+  );
 
   driver.asssignedVehicle = null;
 
@@ -151,6 +203,6 @@ exports.unassignVehicle = catchAsyncErrors(async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    message: 'Vehicle unassigned successfully'
+    message: 'Vehicle unassigned successfully',
   });
 });
