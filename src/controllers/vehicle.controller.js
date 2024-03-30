@@ -1,8 +1,10 @@
 const { StatusCodes } = require('http-status-codes');
 const Vehicle = require('../models/vehicle');
+const ErrorHandler = require('../utils/ErrorHandler');
+const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 
 // POST /create
-exports.createVehicle = async (req, res, next) => {
+exports.createVehicle = catchAsyncErrors(async (req, res, next) => {
   const { number, type } = req.body;
 
   const vehicle = {
@@ -10,84 +12,49 @@ exports.createVehicle = async (req, res, next) => {
     type,
   };
 
-  Vehicle.create(vehicle)
-    .then((data) => {
-      res.status(StatusCodes.CREATED).json({
-        success: true,
-        message: 'Vehicle created successfully',
-        data,
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        message: 'Vehicle creation failed',
-        error,
-      });
-    });
-};
-
-// GET /
-exports.getAllVehicles = async (req, res, next) => {
-  Vehicle.find()
-    .then((data) => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: true,
-        error,
-      });
-    });
-};
-
-// GET /:id
-exports.getVehicleById = async (req, res, next) => {
-  const id = req.params.id;
-
-  const vehicle = await Vehicle.findById(id).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
+  Vehicle.create(vehicle).then((data) => {
+    res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: 'Vehicle created successfully',
+      data,
     });
   });
+});
+
+// GET /
+exports.getAllVehicles = catchAsyncErrors(async (req, res, next) => {
+  Vehicle.find().then((data) => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data,
+    });
+  });
+});
+
+// GET /:id
+exports.getVehicleById = catchAsyncErrors(async (req, res, next) => {
+  const id = req.params.id;
+
+  const vehicle = await Vehicle.findById(id);
 
   if (!vehicle) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Vehicle not found',
-    });
+    return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
   }
 
   res.status(StatusCodes.OK).json({
     success: true,
     vehicle,
   });
-};
+});
 
 // PATCH /:id
-exports.updateVehicleById = async (req, res, next) => {
+exports.updateVehicleById = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
 
-  let vehicle = await Vehicle.findById(id).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
-    });
-  });
+  let vehicle = await Vehicle.findById(id);
 
   if (!vehicle) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Vehicle not found',
-    });
+    return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
   }
 
   vehicle = await Vehicle.findByIdAndUpdate(id, req.body, {
@@ -98,40 +65,22 @@ exports.updateVehicleById = async (req, res, next) => {
     success: true,
     vehicle,
   });
-};
+});
 
 // DELETE /:id
-exports.deleteVehicleById = async (req, res, next) => {
+exports.deleteVehicleById = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
 
-  const vehicle = await Vehicle.findById(id).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).then((data) => {
-      return res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
-    });
-  });
+  const vehicle = await Vehicle.findById(id);
 
   if (!vehicle) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Vehicle not found',
-    });
+    return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
   }
 
-  Vehicle.findByIdAndDelete(id)
-    .then(() => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        message: 'Vehicle deleted successfully',
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: true,
-        message: 'Vehicle deletion failled',
-        error,
-      });
+  Vehicle.findByIdAndDelete(id).then(() => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Vehicle deleted successfully',
     });
-};
+  });
+});

@@ -19,6 +19,10 @@ const branchSchema = new mongoose.Schema(
         ref: 'Vehicle',
       },
     ],
+    assignedAdmin: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Admin',
+    },
   },
   { timestamps: true }
 );

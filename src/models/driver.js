@@ -14,7 +14,6 @@ const driverSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      unique: true,
     },
     nic: {
       type: String,
@@ -26,7 +25,7 @@ const driverSchema = new mongoose.Schema(
       required: [true, 'Mobile Number is required'],
       unique: true,
     },
-    asssignedVehicle: {
+    assignedVehicle: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vehicle',
     },
@@ -39,17 +38,11 @@ const driverSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
       minLength: [8, 'Password should not contain less than 8 characters'],
       select: false,
     },
     avatar: {
-      public_id: {
-        type: String,
-      },
-      uri: {
-        type: String,
-      },
+      type: String,
     },
   },
   { timestamps: true }

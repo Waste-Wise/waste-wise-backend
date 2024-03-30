@@ -12,6 +12,10 @@ const vehicleSchema = new mongoose.Schema(
       required: [true, 'Vehicle type is required'],
       maxLength: [50, 'Vehicle type can not exceed 50 characters'],
     },
+    isDriverAssigned: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

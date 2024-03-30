@@ -1,99 +1,63 @@
 const { StatusCodes } = require('http-status-codes');
+const mongoose = require('mongoose');
 const Branch = require('../models/branch');
 const Driver = require('../models/driver');
 const Vehicle = require('../models/vehicle');
+const ErrorHandler = require('../utils/ErrorHandler');
+const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 
 // POST /create
-exports.createBranch = async (req, res, next) => {
+exports.createBranch = catchAsyncErrors(async (req, res, next) => {
   const { name } = req.body;
 
   const branchObj = {
     name,
   };
 
-  Branch.create(branchObj)
-    .then((data) => {
-      res.status(StatusCodes.CREATED).json({
-        success: true,
-        message: 'Branch created successfully',
-        data,
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        message: 'Branch creation failed',
-        error,
-      });
-    });
-};
-
-// GET /
-exports.getAllBranches = async (req, res, next) => {
-  Branch.find()
-    .then((data) => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error,
-      });
-    });
-};
-
-// GET /:id
-exports.getBranchById = async (req, res, next) => {
-  const id = req.params.id;
-
-  const branch = await Branch.findById(id).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
+  Branch.create(branchObj).then((data) => {
+    res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: 'Branch created successfully',
+      data,
     });
   });
+});
+
+// GET /
+exports.getAllBranches = catchAsyncErrors(async (req, res, next) => {
+  Branch.find().then((data) => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data,
+    });
+  });
+});
+
+// GET /:id
+exports.getBranchById = catchAsyncErrors(async (req, res, next) => {
+  const branch = await Branch.findById(req.params.id);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
   res.status(StatusCodes.OK).json({
     success: true,
     branch,
   });
-};
+});
 
 // PATCH /:id
-exports.updatebranchById = async (req, res, next) => {
+exports.updatebranchById = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
 
-  const { name } = req.body;
-
-  const branchObj = {
-    name,
-  };
-
-  let branch = await Branch.findById(id).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  let branch = await Branch.findById(id);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Driver not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  branch = await Branch.findByIdAndUpdate(id, branchObj, {
+  branch = await Branch.findByIdAndUpdate(id, req.body, {
     new: true,
   });
 
@@ -101,47 +65,41 @@ exports.updatebranchById = async (req, res, next) => {
     success: true,
     branch,
   });
-};
+});
 
 // DELETE /:id
-exports.deleteBranchById = async (req, res, next) => {
+exports.deleteBranchById = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
 
-  const branch = await Branch.findById(id).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const branch = await Branch.findById(id);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  Branch.findByIdAndDelete(id)
-    .then(() => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        message: 'Branch deleted successfully',
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        message: 'Branch deletion failled',
-        error,
-      });
+  Branch.findByIdAndDelete(id).then(() => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Branch deleted successfully',
     });
-};
+  });
+});
 
 // POST /:id/drivers/create
-exports.createDriverForBranch = async (req, res, next) => {
+exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.id;
 
-  const { empNum, name, email, nic, mobileNumber, password } = req.body;
+  const {
+    empNum,
+    name,
+    email,
+    nic,
+    mobileNumber,
+    password,
+    avatar,
+    assignedRoute,
+    assignedVehicle,
+  } = req.body;
 
   const driverObj = {
     empNum,
@@ -152,48 +110,58 @@ exports.createDriverForBranch = async (req, res, next) => {
     password,
   };
 
-  const branch = await Branch.findById(branchId).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const branch = await Branch.findById(branchId);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  const driver = await Driver.create(driverObj).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      message: 'Driver creation failed',
-      error,
-    });
-  });
+  if (avatar) {
+    driverObj.avatar = avatar;
+  }
+
+  if (assignedRoute) {
+    driverObj.assignedRoute = assignedRoute;
+  }
+
+  const driver = await Driver.create(driverObj);
+
+  if (assignedVehicle) {
+    const vehicleObjId = new mongoose.Types.ObjectId(assignedVehicle);
+
+    const vehicle = await Vehicle.findById(vehicleObjId);
+
+    if (!vehicle) {
+      return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
+    }
+
+    if (vehicle.isDriverAssigned) {
+      return next(
+        new ErrorHandler('Vehicle already assigned', StatusCodes.CONFLICT)
+      );
+    }
+
+    vehicle.isDriverAssigned = true;
+
+    await vehicle.save();
+
+    driver.assignedVehicle = vehicleObjId;
+
+    await driver.save();
+  }
 
   branch.drivers.push(driver._id);
 
-  await branch
-    .save()
-    .then((data) => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error,
-      });
+  await branch.save().then((data) => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data,
     });
-};
+  });
+});
 
 // POST /:id/vehicles/create
-exports.createVehicleForBranch = async (req, res, next) => {
+exports.createVehicleForBranch = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.id;
 
   const { number, type } = req.body;
@@ -203,62 +171,32 @@ exports.createVehicleForBranch = async (req, res, next) => {
     type,
   };
 
-  const branch = await Branch.findById(branchId).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const branch = await Branch.findById(branchId);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  const vehicle = await Vehicle.create(vehicleObj).catch((error) => {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      message: 'Vehicle creation failed',
-      error,
-    });
-  });
+  const vehicle = await Vehicle.create(vehicleObj);
 
   branch.vehicles.push(vehicle._id);
 
-  await branch
-    .save()
-    .then((data) => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
-    })
-    .catch((error) => {
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error,
-      });
-    });
-};
-
-// /:id/populate
-exports.getBranchByIdPopulated = async (req, res, next) => {
-  const branchId = req.params.id;
-
-  const branch = await Branch.findById(branchId).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
+  await branch.save().then((data) => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data,
     });
   });
+});
+
+// GET /:id/populate
+exports.getBranchByIdPopulated = catchAsyncErrors(async (req, res, next) => {
+  const branchId = req.params.id;
+
+  const branch = await Branch.findById(branchId);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
   await Branch.findById(branchId)
@@ -269,31 +207,17 @@ exports.getBranchByIdPopulated = async (req, res, next) => {
         success: true,
         data,
       });
-    })
-    .catch((error) => {
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error,
-      });
     });
-};
+});
 
-// /:id/drivers
-exports.getDriversForBranch = async (req, res, next) => {
+// GET /:id/drivers
+exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.id;
 
-  const branch = await Branch.findById(branchId).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const branch = await Branch.findById(branchId);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
   await Branch.findById(branchId)
@@ -303,31 +227,17 @@ exports.getDriversForBranch = async (req, res, next) => {
         success: true,
         data: data.drivers,
       });
-    })
-    .catch((error) => {
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error,
-      });
     });
-};
+});
 
-// /:id/vehicles
-exports.getVehiclesForBranch = async (req, res, next) => {
+// GET /:id/vehicles
+exports.getVehiclesForBranch = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.id;
 
-  const branch = await Branch.findById(branchId).catch((error) => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      success: false,
-      error,
-    });
-  });
+  const branch = await Branch.findById(branchId);
 
   if (!branch) {
-    return res.status(StatusCodes.NOT_FOUND).json({
-      success: false,
-      message: 'Branch not found',
-    });
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
   await Branch.findById(branchId)
@@ -337,11 +247,39 @@ exports.getVehiclesForBranch = async (req, res, next) => {
         success: true,
         data: data.vehicles,
       });
-    })
-    .catch((error) => {
-      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error,
-      });
     });
-};
+});
+
+// PUT /:branchId/assign-admin/:adminId
+exports.assignAdminToBranch = catchAsyncErrors(async (req, res, next) => {
+  const { branchId, adminId } = req.params;
+
+  const branch = await Branch.findById(branchId);
+
+  const adminObjectId = new mongoose.Types.ObjectId(adminId);
+
+  branch.assignedAdmin = adminObjectId;
+
+  await branch.save().then(() => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Admin assigned to branch successfully',
+    });
+  });
+});
+
+// DELETE /:id/unassign-admin
+exports.unassignAdminFromBranch = catchAsyncErrors(async (req, res, next) => {
+  const id = req.params.id;
+
+  const branch = await Branch.findById(id);
+
+  branch.assignedAdmin = null;
+
+  await branch.save().then(() => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Admin unassigned successfully',
+    });
+  });
+});
