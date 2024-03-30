@@ -210,7 +210,7 @@ exports.getVehiclesForBranch = catchAsyncErrors(async (req, res, next) => {
 
 // PUT /:branchId/assign-admin/:adminId
 exports.assignAdminToBranch = catchAsyncErrors(async (req, res, next) => {
-  const {branchId, adminId} = req.params;
+  const { branchId, adminId } = req.params;
 
   const branch = await Branch.findById(branchId);
 
@@ -221,7 +221,23 @@ exports.assignAdminToBranch = catchAsyncErrors(async (req, res, next) => {
   await branch.save().then(() => {
     res.status(StatusCodes.OK).json({
       success: true,
-      message: 'Admin assigned to branch successfully'
+      message: 'Admin assigned to branch successfully',
     });
   });
-})
+});
+
+// DELETE /:id/unassign-admin
+exports.unassignAdminFromBranch = catchAsyncErrors(async (req, res, next) => {
+  const id = req.params.id;
+
+  const branch = await Branch.findById(id);
+
+  branch.assignedAdmin = null;
+
+  await branch.save().then(() => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Admin unassigned successfully',
+    });
+  });
+});
