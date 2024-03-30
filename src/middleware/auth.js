@@ -40,3 +40,21 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
 
 });
 
+exports.isAuthorizedAdmin = () => {
+  return (req, res, next) => {
+    const branchId = req.params.branchId;
+
+    
+
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new ErrorHandler(
+          `Role '${req.user.role}' is not allowed to access this resource`,
+          StatusCodes.FORBIDDEN
+        )
+      ); // forbid user
+    }
+
+    next();
+  };
+};
