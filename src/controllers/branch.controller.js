@@ -5,7 +5,6 @@ const Driver = require('../models/driver');
 const Vehicle = require('../models/vehicle');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
-const mongoose = require('mongoose');
 
 // POST /create
 exports.createBranch = catchAsyncErrors(async (req, res, next) => {

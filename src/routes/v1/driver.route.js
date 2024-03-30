@@ -7,7 +7,7 @@ const {
   deleteDriverById,
   assignVehicleToDriver,
   unassignVehicle,
-} = require('../controllers/driver.controller');
+} = require('../../controllers/driver.controller');
 
 const router = express.Router();
 

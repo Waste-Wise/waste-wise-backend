@@ -12,8 +12,8 @@ const {
   getVehiclesForBranch,
   assignAdminToBranch,
   unassignAdminFromBranch,
-} = require('../controllers/branch.controller');
-const { isAuthenticated, isAuthorizedAdmin } = require('../middleware/auth');
+} = require('../../controllers/branch.controller');
+const { isAuthenticated, isAuthorizedAdmin } = require('../../middleware/auth');
 
 const router = express.Router();
 

@@ -5,7 +5,7 @@ const {
   getVehicleById,
   updateVehicleById,
   deleteVehicleById,
-} = require('../controllers/vehicle.controller');
+} = require('../../controllers/vehicle.controller');
 
 const router = express.Router();
 

@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const bodyParser = require('body-parser')
-const routes = require('./routes');
+const routes = require('./routes/v1');
 const errorMiddleware = require('./middleware/errors');
 
 const app = express();
