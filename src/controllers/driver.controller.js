@@ -26,7 +26,6 @@ exports.createDriver = catchAsyncErrors(async (req, res, next) => {
     nic,
     mobileNumber,
     password,
-    avatar,
   };
 
   if (avatar) {
@@ -37,8 +36,8 @@ exports.createDriver = catchAsyncErrors(async (req, res, next) => {
     driverObj.assignedRoute = assignedRoute;
   }
 
-  const vehicleObjId = new mongoose.Types.ObjectId(assignedVehicle);
   if (assignedVehicle) {
+    const vehicleObjId = new mongoose.Types.ObjectId(assignedVehicle);
     const vehicle = await Vehicle.findById(vehicleObjId);
 
     if (!vehicle) {
@@ -53,9 +52,9 @@ exports.createDriver = catchAsyncErrors(async (req, res, next) => {
 
     vehicle.isDriverAssigned = true;
 
-    driverObj.assignedVehicle = vehicleObjId;
-
     await vehicle.save();
+
+    driverObj.assignedVehicle = vehicleObjId;
   }
 
   Driver.create(driverObj).then(() => {
@@ -152,7 +151,7 @@ exports.assignVehicleToDriver = catchAsyncErrors(async (req, res, next) => {
     );
   }
 
-  const previousAssignedVehicle = driver.asssignedVehicle;
+  const previousAssignedVehicle = driver.assignedVehicle;
 
   if (previousAssignedVehicle) {
     await Vehicle.findOneAndUpdate(
@@ -161,7 +160,7 @@ exports.assignVehicleToDriver = catchAsyncErrors(async (req, res, next) => {
     );
   }
 
-  driver.asssignedVehicle = vehicle._id;
+  driver.assignedVehicle = vehicle._id;
   vehicle.isDriverAssigned = true;
 
   await driver.save();
@@ -183,7 +182,7 @@ exports.unassignVehicle = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
   }
 
-  if (!driver.asssignedVehicle) {
+  if (!driver.assignedVehicle) {
     return next(
       new ErrorHandler(
         'Vehicle is not assigned to the driver',
@@ -193,11 +192,11 @@ exports.unassignVehicle = catchAsyncErrors(async (req, res, next) => {
   }
 
   await Vehicle.findOneAndUpdate(
-    { _id: driver.asssignedVehicle._id },
+    { _id: driver.assignedVehicle._id },
     { isDriverAssigned: false }
   );
 
-  driver.asssignedVehicle = null;
+  driver.assignedVehicle = null;
 
   await driver.save();
 

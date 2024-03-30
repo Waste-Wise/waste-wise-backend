@@ -1,4 +1,5 @@
 const { StatusCodes } = require('http-status-codes');
+const mongoose = require('mongoose');
 const Branch = require('../models/branch');
 const Driver = require('../models/driver');
 const Vehicle = require('../models/vehicle');
@@ -88,7 +89,17 @@ exports.deleteBranchById = catchAsyncErrors(async (req, res, next) => {
 exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.id;
 
-  const { empNum, name, email, nic, mobileNumber, password } = req.body;
+  const {
+    empNum,
+    name,
+    email,
+    nic,
+    mobileNumber,
+    password,
+    avatar,
+    assignedRoute,
+    assignedVehicle,
+  } = req.body;
 
   const driverObj = {
     empNum,
@@ -105,7 +116,39 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
+  if (avatar) {
+    driverObj.avatar = avatar;
+  }
+
+  if (assignedRoute) {
+    driverObj.assignedRoute = assignedRoute;
+  }
+
   const driver = await Driver.create(driverObj);
+
+  if (assignedVehicle) {
+    const vehicleObjId = new mongoose.Types.ObjectId(assignedVehicle);
+
+    const vehicle = await Vehicle.findById(vehicleObjId);
+
+    if (!vehicle) {
+      return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
+    }
+
+    if (vehicle.isDriverAssigned) {
+      return next(
+        new ErrorHandler('Vehicle already assigned', StatusCodes.CONFLICT)
+      );
+    }
+
+    vehicle.isDriverAssigned = true;
+
+    await vehicle.save();
+
+    driver.assignedVehicle = vehicleObjId;
+
+    await driver.save();
+  }
 
   branch.drivers.push(driver._id);
 
