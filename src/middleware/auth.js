@@ -5,7 +5,7 @@ const catchAsyncErrors = require('./catchAsyncErrors');
 const Branch = require('../models/branch');
 
 // authenticate user by bearer token
-exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
+exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   const authHeader = req.headers['authorization'];
 
   if (!authHeader) {
@@ -39,25 +39,29 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-exports.isAuthorizedAdmin = () => {
-  return catchAsyncErrors(async (req, res, next) => {
-    const branchId = req.params.branchId;
+exports.isAuthorizedAdmin = catchAsyncErrors(async (req, res, next) => {
+  if (req.user.role !== 'admin') {
+    return next(
+      new ErrorHandler(
+        `${req.user.role} Not allowed to access this resource`,
+        StatusCodes.FORBIDDEN
+      )
+    ); // forbid user
+  }
 
-    const branch = await Branch.findById(branchId);
+  const id = req.params.id;
 
-    console.log(branch.assignedAdmin, req.user._id);
+  const branch = await Branch.findById(id);
 
-    const isAdminAssigned = branch.assignedAdmin == req.user._id;
+  const isAdminAssigned = branch.assignedAdmin == req.user._id;
 
-    if (!isAdminAssigned) {
-      return next(
-        new ErrorHandler(
-          `Role '${req.user.role}' is not allowed to access this resource`,
-          StatusCodes.FORBIDDEN
-        )
-      ); // forbid user
-    }
-
-    next();
-  });
-};
+  if (!isAdminAssigned) {
+    return next(
+      new ErrorHandler(
+        `Not allowed to access this resource`,
+        StatusCodes.FORBIDDEN
+      )
+    ); // forbid user
+  }
+  next();
+});
