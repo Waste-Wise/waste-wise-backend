@@ -38,7 +38,6 @@ const driverSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
       minLength: [8, 'Password should not contain less than 8 characters'],
       select: false,
     },
