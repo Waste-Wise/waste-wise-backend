@@ -10,6 +10,7 @@ const {
   createVehicleForBranch,
   getDriversForBranch,
   getVehiclesForBranch,
+  assignAdminToBranch,
 } = require('../controllers/branch.controller');
 
 const router = express.Router();
@@ -24,5 +25,8 @@ router.route('/:id/vehicles/create').post(createVehicleForBranch);
 router.route('/:id/populate').get(getBranchByIdPopulated);
 router.route('/:id/drivers').get(getDriversForBranch);
 router.route('/:id/vehicles').get(getVehiclesForBranch);
+router.route('/:branchId/assign-admin/:adminId').put(assignAdminToBranch);
+
+
 
 module.exports = router;
