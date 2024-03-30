@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { StatusCodes } = require('http-status-codes');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('./catchAsyncErrors');
+const Branch = require('../models/branch');
 
 // authenticate user by bearer token
 exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
@@ -44,7 +45,7 @@ exports.isAuthorizedAdmin = () => {
   return (req, res, next) => {
     const branchId = req.params.branchId;
 
-    
+    const isAdminAssigned = Branch.findById(branchId).
 
     if (!roles.includes(req.user.role)) {
       return next(
