@@ -49,7 +49,7 @@ adminSchema.pre('save', async function (next) {
 
 // retrieve jwt
 adminSchema.methods.getJwt = function () {
-  return jwt.sign({ _id: this._id, role: this.role }, process.env.JWT_SECRET, {
+  return jwt.sign({ _id: this._id, role: this.role, name: this.name, email: this.email }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE_TIME,
   });
 };
