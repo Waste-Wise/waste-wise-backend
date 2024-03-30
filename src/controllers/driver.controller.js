@@ -15,7 +15,8 @@ exports.createDriver = catchAsyncErrors(async (req, res, next) => {
     nic,
     mobileNumber,
     password,
-    avatar
+    avatar,
+    assignedRoute
   };
 
   Driver.create(driverObj).then((data) => {
