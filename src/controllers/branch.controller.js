@@ -5,6 +5,7 @@ const Driver = require('../models/driver');
 const Vehicle = require('../models/vehicle');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
+const mongoose = require('mongoose');
 
 // POST /create
 exports.createBranch = catchAsyncErrors(async (req, res, next) => {
@@ -248,4 +249,38 @@ exports.getVehiclesForBranch = catchAsyncErrors(async (req, res, next) => {
         data: data.vehicles,
       });
     });
+});
+
+// PUT /:branchId/assign-admin/:adminId
+exports.assignAdminToBranch = catchAsyncErrors(async (req, res, next) => {
+  const { branchId, adminId } = req.params;
+
+  const branch = await Branch.findById(branchId);
+
+  const adminObjectId = new mongoose.Types.ObjectId(adminId);
+
+  branch.assignedAdmin = adminObjectId;
+
+  await branch.save().then(() => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Admin assigned to branch successfully',
+    });
+  });
+});
+
+// DELETE /:id/unassign-admin
+exports.unassignAdminFromBranch = catchAsyncErrors(async (req, res, next) => {
+  const id = req.params.id;
+
+  const branch = await Branch.findById(id);
+
+  branch.assignedAdmin = null;
+
+  await branch.save().then(() => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Admin unassigned successfully',
+    });
+  });
 });
