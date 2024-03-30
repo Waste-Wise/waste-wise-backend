@@ -1,14 +1,17 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const adminSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'User name is required'],
-      maxLength: [100, 'User name can not exceed 100 characters'],
+      required: [true, 'Name is required'],
+      maxLength: [100, 'Admin name can not exceed 100 characters'],
     },
     email: {
       type: String,
+      required: [true, 'Email is required'],
       unique: true,
     },
     nic: {
@@ -32,12 +35,7 @@ const adminSchema = new mongoose.Schema(
       select: false,
     },
     avatar: {
-      public_id: {
-        type: String,
-      },
-      uri: {
-        type: String,
-      },
+      type: String,
     },
   },
   { timestamps: true }
@@ -51,7 +49,7 @@ adminSchema.pre('save', async function (next) {
 
 // retrieve jwt
 adminSchema.methods.getJwt = function () {
-  return jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ _id: this._id, role: this.role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE_TIME,
   });
 };
