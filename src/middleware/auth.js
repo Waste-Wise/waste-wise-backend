@@ -19,35 +19,37 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
 
   const token = authHeader?.split(' ')[1];
 
-  if(token) {
+  if (token) {
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-        if(err) {
-            return res.status(StatusCodes.FORBIDDEN).json({
-                success: false,
-                message: 'Invalid token'
-            })
-        }
-        
-        req.user = decoded;
-        next();
-      });
-  }
-  else {
+      if (err) {
+        return res.status(StatusCodes.FORBIDDEN).json({
+          success: false,
+          message: 'Invalid token',
+        });
+      }
+
+      req.user = decoded;
+      next();
+    });
+  } else {
     res.status(StatusCodes.UNAUTHORIZED).json({
-        success: false,
-        message: 'Unauthorized'
+      success: false,
+      message: 'Unauthorized',
     });
   }
-
 });
 
 exports.isAuthorizedAdmin = () => {
-  return (req, res, next) => {
+  return catchAsyncErrors(async (req, res, next) => {
     const branchId = req.params.branchId;
 
-    const isAdminAssigned = Branch.findById(branchId).
+    const branch = await Branch.findById(branchId);
 
-    if (!roles.includes(req.user.role)) {
+    console.log(branch.assignedAdmin, req.user._id);
+
+    const isAdminAssigned = branch.assignedAdmin == req.user._id;
+
+    if (!isAdminAssigned) {
       return next(
         new ErrorHandler(
           `Role '${req.user.role}' is not allowed to access this resource`,
@@ -57,5 +59,5 @@ exports.isAuthorizedAdmin = () => {
     }
 
     next();
-  };
+  });
 };
