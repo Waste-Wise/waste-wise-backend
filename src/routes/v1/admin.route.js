@@ -9,8 +9,10 @@ const {
 const router = express.Router();
 
 router.route('/').get(getAllAdmins);
-router.route('/:id').get(getAdminById);
-router.route('/:id').patch(updateAdminById);
-router.route('/:id').delete(deleteAdminById);
+router
+  .route('/:id')
+  .get(getAdminById)
+  .patch(updateAdminById)
+  .delete(deleteAdminById);
 
 module.exports = router;
