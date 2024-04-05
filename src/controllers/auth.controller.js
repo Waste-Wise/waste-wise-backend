@@ -7,7 +7,6 @@ const ErrorHandler = require('../utils/ErrorHandler');
 exports.adminLogin = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
 
-  // retrieve user with password
   const user = await Admin.findOne({ email: email }).select('+password');
 
   if (!user) {
@@ -16,7 +15,6 @@ exports.adminLogin = catchAsyncErrors(async (req, res, next) => {
     );
   }
 
-  // check password
   const isPasswordsMatched = await user.comparePasswords(password);
 
   if (!isPasswordsMatched) {
@@ -25,7 +23,6 @@ exports.adminLogin = catchAsyncErrors(async (req, res, next) => {
 
   const token = user.getJwt();
 
-  // send json web token as the response
   res.status(200).json({
     success: true,
     token,
@@ -44,7 +41,6 @@ exports.adminCreate = catchAsyncErrors(async (req, res, next) => {
 
   const admin = await Admin.create(adminObj);
 
-  // send json web token as the response
   res.status(StatusCodes.CREATED).json({
     success: true,
     message: 'Admin created successfully',

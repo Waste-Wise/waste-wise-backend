@@ -25,7 +25,7 @@ exports.getAdminById = catchAsyncErrors(async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    admin,
+    data: admin,
   });
 });
 
@@ -33,19 +33,19 @@ exports.getAdminById = catchAsyncErrors(async (req, res, next) => {
 exports.updateAdminById = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
 
-  let admin = await Admin.findById(id);
+  const admin = await Admin.findById(id);
 
   if (!admin) {
     return next(new ErrorHandler('Admin not found', StatusCodes.NOT_FOUND));
   }
 
-  admin = await Admin.findByIdAndUpdate(id, req.body, {
-    new: true,
-  });
+  Object.assign(admin, req.body);
+
+  await admin.save();
 
   res.status(StatusCodes.OK).json({
     success: true,
-    admin,
+    data: admin,
   });
 });
 

@@ -44,7 +44,7 @@ exports.getBranchById = catchAsyncErrors(async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    branch,
+    data: branch,
   });
 });
 
@@ -64,7 +64,7 @@ exports.updatebranchById = catchAsyncErrors(async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    branch,
+    data: branch,
   });
 });
 

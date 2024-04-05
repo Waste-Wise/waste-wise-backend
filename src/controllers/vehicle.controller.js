@@ -43,7 +43,7 @@ exports.getVehicleById = catchAsyncErrors(async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    vehicle,
+    data: vehicle,
   });
 });
 
@@ -51,19 +51,19 @@ exports.getVehicleById = catchAsyncErrors(async (req, res, next) => {
 exports.updateVehicleById = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
 
-  let vehicle = await Vehicle.findById(id);
+  const vehicle = await Vehicle.findById(id);
 
   if (!vehicle) {
     return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
   }
 
-  vehicle = await Vehicle.findByIdAndUpdate(id, req.body, {
-    new: true,
-  });
+  Object.assign(vehicle, req.body);
+
+  await vehicle.save();
 
   res.status(StatusCodes.OK).json({
     success: true,
-    vehicle,
+    data: vehicle,
   });
 });
 

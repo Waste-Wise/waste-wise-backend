@@ -87,7 +87,7 @@ exports.getDriverById = catchAsyncErrors(async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    driver,
+    data: driver,
   });
 });
 
@@ -95,19 +95,19 @@ exports.getDriverById = catchAsyncErrors(async (req, res, next) => {
 exports.updateDriverById = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
 
-  let driver = await Driver.findById(id);
+  const driver = await Driver.findById(id);
 
   if (!driver) {
     return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
   }
 
-  driver = await Driver.findByIdAndUpdate(id, req.body, {
-    new: true,
-  });
+  Object.assign(driver, req.body)
+  
+  await driver.save();
 
   res.status(StatusCodes.OK).json({
     success: true,
-    driver,
+    data: driver,
   });
 });
 
@@ -151,11 +151,11 @@ exports.assignVehicleToDriver = catchAsyncErrors(async (req, res, next) => {
     );
   }
 
-  const previousAssignedVehicle = driver.assignedVehicle;
+  const previouslyAssignedVehicle = driver.assignedVehicle;
 
-  if (previousAssignedVehicle) {
-    await Vehicle.findOneAndUpdate(
-      { _id: previousAssignedVehicle._id },
+  if (previouslyAssignedVehicle) {
+    await Vehicle.findByIdAndUpdate(
+      previouslyAssignedVehicle._id,
       { isDriverAssigned: false }
     );
   }
@@ -191,8 +191,8 @@ exports.unassignVehicle = catchAsyncErrors(async (req, res, next) => {
     );
   }
 
-  await Vehicle.findOneAndUpdate(
-    { _id: driver.assignedVehicle._id },
+  await Vehicle.findByIdAndUpdate(
+    driver.assignedVehicle._id,
     { isDriverAssigned: false }
   );
 
