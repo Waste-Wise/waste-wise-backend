@@ -35,7 +35,8 @@ exports.getAllBranches = catchAsyncErrors(async (req, res, next) => {
 
 // GET /:id
 exports.getBranchById = catchAsyncErrors(async (req, res, next) => {
-  const branch = await Branch.findById(req.params.id);
+  const id = req.params.id;
+  const branch = await Branch.findById(id);
 
   if (!branch) {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
@@ -43,7 +44,7 @@ exports.getBranchById = catchAsyncErrors(async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    branch,
+    data: branch,
   });
 });
 
@@ -51,7 +52,7 @@ exports.getBranchById = catchAsyncErrors(async (req, res, next) => {
 exports.updatebranchById = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
 
-  let branch = await Branch.findById(id);
+  const branch = await Branch.findById(id);
 
   if (!branch) {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
@@ -63,7 +64,7 @@ exports.updatebranchById = catchAsyncErrors(async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    branch,
+    data: branch,
   });
 });
 
@@ -87,7 +88,7 @@ exports.deleteBranchById = catchAsyncErrors(async (req, res, next) => {
 
 // POST /:id/drivers/create
 exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
-  const branchId = req.params.id;
+  const id = req.params.id;
 
   const {
     empNum,
@@ -110,7 +111,7 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
     password,
   };
 
-  const branch = await Branch.findById(branchId);
+  const branch = await Branch.findById(id);
 
   if (!branch) {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
@@ -162,7 +163,7 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 
 // POST /:id/vehicles/create
 exports.createVehicleForBranch = catchAsyncErrors(async (req, res, next) => {
-  const branchId = req.params.id;
+  const id = req.params.id;
 
   const { number, type } = req.body;
 
@@ -171,7 +172,7 @@ exports.createVehicleForBranch = catchAsyncErrors(async (req, res, next) => {
     type,
   };
 
-  const branch = await Branch.findById(branchId);
+  const branch = await Branch.findById(id);
 
   if (!branch) {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
@@ -191,15 +192,15 @@ exports.createVehicleForBranch = catchAsyncErrors(async (req, res, next) => {
 
 // GET /:id/populate
 exports.getBranchByIdPopulated = catchAsyncErrors(async (req, res, next) => {
-  const branchId = req.params.id;
+  const id = req.params.id;
 
-  const branch = await Branch.findById(branchId);
+  const branch = await Branch.findById(id);
 
   if (!branch) {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  await Branch.findById(branchId)
+  await Branch.findById(id)
     .populate('drivers')
     .populate('vehicles')
     .then((data) => {
@@ -212,15 +213,15 @@ exports.getBranchByIdPopulated = catchAsyncErrors(async (req, res, next) => {
 
 // GET /:id/drivers
 exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
-  const branchId = req.params.id;
+  const id = req.params.id;
 
-  const branch = await Branch.findById(branchId);
+  const branch = await Branch.findById(id);
 
   if (!branch) {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  await Branch.findById(branchId)
+  await Branch.findById(id)
     .populate('drivers')
     .then((data) => {
       res.status(StatusCodes.OK).json({
@@ -232,15 +233,15 @@ exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
 
 // GET /:id/vehicles
 exports.getVehiclesForBranch = catchAsyncErrors(async (req, res, next) => {
-  const branchId = req.params.id;
+  const id = req.params.id;
 
-  const branch = await Branch.findById(branchId);
+  const branch = await Branch.findById(id);
 
   if (!branch) {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  await Branch.findById(branchId)
+  await Branch.findById(id)
     .populate('vehicles')
     .then((data) => {
       res.status(StatusCodes.OK).json({
