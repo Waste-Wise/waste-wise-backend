@@ -5,6 +5,9 @@ const {
   getVehicleById,
   updateVehicleById,
   deleteVehicleById,
+  getPosition,
+  assignPosition,
+  unassignPosistion,
 } = require('../../controllers/vehicle.controller');
 
 const router = express.Router();
@@ -16,5 +19,10 @@ router
   .get(getVehicleById)
   .patch(updateVehicleById)
   .delete(deleteVehicleById);
+router
+  .route('/:id/position')
+  .get(getPosition)
+  .put(assignPosition)
+  .delete(unassignPosistion);
 
 module.exports = router;

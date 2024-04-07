@@ -15,6 +15,11 @@ const vehicleSchema = new mongoose.Schema(
     isDriverAssigned: {
       type: Boolean,
       default: false
+    },
+    position: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Position',
+      default: null
     }
   },
   { timestamps: true }
