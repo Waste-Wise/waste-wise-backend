@@ -2,6 +2,7 @@ const { StatusCodes } = require('http-status-codes');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const Admin = require('../models/admin');
 const ErrorHandler = require('../utils/ErrorHandler');
+const jwt = require('jsonwebtoken');
 
 // POST /admin/login
 exports.adminLogin = catchAsyncErrors(async (req, res, next) => {
@@ -23,9 +24,12 @@ exports.adminLogin = catchAsyncErrors(async (req, res, next) => {
 
   const token = user.getJwt();
 
-  res.status(200).json({
+  const refresh_token = user.getRefreshToken();
+
+  res.status(StatusCodes.OK).json({
     success: true,
     token,
+    refresh_token,
   });
 });
 
@@ -44,5 +48,41 @@ exports.adminCreate = catchAsyncErrors(async (req, res, next) => {
   res.status(StatusCodes.CREATED).json({
     success: true,
     message: 'Admin created successfully',
+  });
+});
+
+// POST /refresh
+exports.refreshAuth = catchAsyncErrors(async (req, res, next) => {
+  const refresh_token = req.body.refresh_token;
+
+  if (!refresh_token) {
+    return next(
+      new ErrorHandler('Refresh token not available', StatusCodes.BAD_REQUEST)
+    );
+  }
+
+  jwt.verify(refresh_token, process.env.JWT_SECRET, async (err, decoded) => {
+    if (err) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        success: false,
+        message: 'Invalid token',
+      });
+    }
+
+    const user = await Admin.findById(decoded._id);
+
+    if (!user) {
+      return next(new ErrorHandler('User not found', StatusCodes.NOT_FOUND));
+    }
+
+    const token = user.getJwt();
+
+    const refresh_token = user.getRefreshToken();
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      token,
+      refresh_token,
+    });
   });
 });

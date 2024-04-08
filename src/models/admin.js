@@ -49,8 +49,19 @@ adminSchema.pre('save', async function (next) {
 
 // retrieve jwt
 adminSchema.methods.getJwt = function () {
-  return jwt.sign({ _id: this._id, role: this.role, name: this.name, email: this.email }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE_TIME,
+  return jwt.sign(
+    { _id: this._id, role: this.role, name: this.name, email: this.email },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_ACCESS_EXPIRE_TIME,
+    }
+  );
+};
+
+// retrieve refresh token
+adminSchema.methods.getRefreshToken = function () {
+  return jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME,
   });
 };
 

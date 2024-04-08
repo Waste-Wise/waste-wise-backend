@@ -92,8 +92,8 @@ exports.assignPosition = catchAsyncErrors(async (req, res, next) => {
 
   const positionObj = {
     latitude,
-    longitude
-  }
+    longitude,
+  };
 
   const id = req.params.id;
   const vehicle = await Vehicle.findById(id);
@@ -124,11 +124,11 @@ exports.getPosition = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
   }
 
-  if(!vehicle.position) {
-    return next(new ErrorHandler('Position not assigned', StatusCodes.CONFLICT));
+  if (!vehicle.position) {
+    return next(
+      new ErrorHandler('Position not assigned', StatusCodes.CONFLICT)
+    );
   }
-
-
 
   res.status(StatusCodes.OK).json({
     success: true,
@@ -153,6 +153,5 @@ exports.unassignPosistion = catchAsyncErrors(async (req, res, next) => {
       success: true,
       message: 'Position unassigned successfully',
     });
-  })
-
+  });
 });
