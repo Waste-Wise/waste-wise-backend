@@ -81,7 +81,11 @@ exports.refreshAuth = catchAsyncErrors(async (req, res, next) => {
       return next(new ErrorHandler('User not found', StatusCodes.NOT_FOUND));
     }
 
-    const token = user.getJwt();
+    const adminId = new mongoose.Types.ObjectId(user._id);
+
+    const branch = await Branch.findOne({ assignedAdmin: adminId });
+
+    const token = user.getJwt(branch.id);
 
     const refresh_token = user.getRefreshToken();
 
