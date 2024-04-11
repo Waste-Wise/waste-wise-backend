@@ -48,9 +48,15 @@ adminSchema.pre('save', async function (next) {
 });
 
 // retrieve jwt
-adminSchema.methods.getJwt = function () {
+adminSchema.methods.getJwt = function (branchId) {
   return jwt.sign(
-    { _id: this._id, role: this.role, name: this.name, email: this.email },
+    {
+      _id: this._id,
+      role: this.role,
+      name: this.name,
+      email: this.email,
+      branchId,
+    },
     process.env.JWT_SECRET,
     {
       expiresIn: process.env.JWT_ACCESS_EXPIRE_TIME,

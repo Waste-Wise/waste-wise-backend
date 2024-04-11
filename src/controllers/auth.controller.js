@@ -1,6 +1,8 @@
+const mongoose = require('mongoose');
 const { StatusCodes } = require('http-status-codes');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const Admin = require('../models/admin');
+const Branch = require('../models/branch');
 const ErrorHandler = require('../utils/ErrorHandler');
 const jwt = require('jsonwebtoken');
 
@@ -22,7 +24,11 @@ exports.adminLogin = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Invalid password', StatusCodes.UNAUTHORIZED));
   }
 
-  const token = user.getJwt();
+  const adminId = new mongoose.Types.ObjectId('6607c75e363ecd612b4b31c0');
+
+  const branch = await Branch.findOne({ assignedAdmin: adminId });
+
+  const token = user.getJwt(branch.id);
 
   const refresh_token = user.getRefreshToken();
 
