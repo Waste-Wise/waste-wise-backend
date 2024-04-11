@@ -24,7 +24,7 @@ exports.adminLogin = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Invalid password', StatusCodes.UNAUTHORIZED));
   }
 
-  const adminId = new mongoose.Types.ObjectId('6607c75e363ecd612b4b31c0');
+  const adminId = new mongoose.Types.ObjectId(user._id);
 
   const branch = await Branch.findOne({ assignedAdmin: adminId });
 
