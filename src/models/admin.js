@@ -26,7 +26,7 @@ const adminSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: 'admin',
+      default: 'branch',
     },
     password: {
       type: String,
@@ -48,7 +48,7 @@ adminSchema.pre('save', async function (next) {
 });
 
 // retrieve jwt
-adminSchema.methods.getJwt = function (branchId) {
+adminSchema.methods.getJwt = function (branchId, branchName) {
   return jwt.sign(
     {
       _id: this._id,
@@ -56,6 +56,7 @@ adminSchema.methods.getJwt = function (branchId) {
       name: this.name,
       email: this.email,
       branchId,
+      branchName
     },
     process.env.JWT_SECRET,
     {

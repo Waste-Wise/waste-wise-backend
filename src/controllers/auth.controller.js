@@ -28,7 +28,7 @@ exports.adminLogin = catchAsyncErrors(async (req, res, next) => {
 
   const branch = await Branch.findOne({ assignedAdmin: adminId });
 
-  const token = user.getJwt(branch.id);
+  const token = user.getJwt(branch.id, branch.name);
 
   const refresh_token = user.getRefreshToken();
 
@@ -85,7 +85,7 @@ exports.refreshAuth = catchAsyncErrors(async (req, res, next) => {
 
     const branch = await Branch.findOne({ assignedAdmin: adminId });
 
-    const token = user.getJwt(branch.id);
+    const token = user.getJwt(branch.id, branch.name);
 
     const refresh_token = user.getRefreshToken();
 
