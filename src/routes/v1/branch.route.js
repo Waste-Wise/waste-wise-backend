@@ -24,6 +24,8 @@ const router = express.Router();
 
 router.route('/create').post(createBranch);
 router.route('/').get(getAllBranches);
+
+router.route('/routes').get(getAllRoutes);
 router
   .route('/:id')
   .get(getBranchById)
@@ -48,7 +50,6 @@ router.route('/:branchId/assign-admin/:adminId').put(assignAdminToBranch);
 router.route('/:id/unassign-admin').delete(unassignAdminFromBranch);
 
 router.route('/:id/routes/create').post(createRoute);
-router.route('/:id/routes').get(getAllRoutes);
 router
   .route('/:branchId/routes/:routeId')
   .get(getRouteById)

@@ -306,7 +306,7 @@ exports.createRoute = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// GET /:id/routes
+// GET /routes
 exports.getAllRoutes = catchAsyncErrors(async (req, res, next) => {
   Route.find().then((data) => {
     res.status(StatusCodes.OK).json({
