@@ -1,14 +1,15 @@
+const mongoose = require('mongoose');
 const { StatusCodes } = require('http-status-codes');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
-const Admin = require('../models/admin');
+const Branch = require('../models/branch');
 const ErrorHandler = require('../utils/ErrorHandler');
+const jwt = require('jsonwebtoken');
 
-// POST /admin/login
-exports.adminLogin = catchAsyncErrors(async (req, res, next) => {
+// POST /login
+exports.login = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
 
-  // retrieve user with password
-  const user = await Admin.findOne({ email: email }).select('+password');
+  const user = await Branch.findOne({ email: email }).select('+password');
 
   if (!user) {
     return next(
@@ -16,7 +17,6 @@ exports.adminLogin = catchAsyncErrors(async (req, res, next) => {
     );
   }
 
-  // check password
   const isPasswordsMatched = await user.comparePasswords(password);
 
   if (!isPasswordsMatched) {
@@ -25,28 +25,47 @@ exports.adminLogin = catchAsyncErrors(async (req, res, next) => {
 
   const token = user.getJwt();
 
-  // send json web token as the response
-  res.status(200).json({
+  const refresh_token = user.getRefreshToken();
+
+  res.status(StatusCodes.OK).json({
     success: true,
     token,
+    refresh_token,
   });
 });
 
-// POST /admin/create
-exports.adminCreate = catchAsyncErrors(async (req, res, next) => {
-  const adminObj = {
-    name: req.body.name,
-    email: req.body.email,
-    nic: req.body.nic,
-    mobileNumber: req.body.mobileNumber,
-    password: req.body.password,
-  };
+// POST /refresh
+exports.refreshAuth = catchAsyncErrors(async (req, res, next) => {
+  const refresh_token = req.body.refresh_token;
 
-  const admin = await Admin.create(adminObj);
+  if (!refresh_token) {
+    return next(
+      new ErrorHandler('Refresh token not available', StatusCodes.BAD_REQUEST)
+    );
+  }
 
-  // send json web token as the response
-  res.status(StatusCodes.CREATED).json({
-    success: true,
-    message: 'Admin created successfully',
+  jwt.verify(refresh_token, process.env.JWT_SECRET, async (err, decoded) => {
+    if (err) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        success: false,
+        message: 'Invalid token',
+      });
+    }
+
+    const user = await Branch.findById(decoded._id);
+
+    if (!user) {
+      return next(new ErrorHandler('User not found', StatusCodes.NOT_FOUND));
+    }
+
+    const token = user.getJwt();
+
+    const refresh_token = user.getRefreshToken();
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      token,
+      refresh_token,
+    });
   });
 });

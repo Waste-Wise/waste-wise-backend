@@ -12,22 +12,51 @@ const {
   getVehiclesForBranch,
   assignAdminToBranch,
   unassignAdminFromBranch,
+  createRoute,
+  getRouteById,
+  deleteRouteById,
+  getAllRoutes,
+  updateRouteById,
 } = require('../../controllers/branch.controller');
-const { isAuthenticated, isAuthorizedAdmin } = require('../../middleware/auth');
+const {
+  isAuthenticated,
+  isAuthorizedBranch,
+} = require('../../middleware/auth');
 
 const router = express.Router();
 
 router.route('/create').post(createBranch);
 router.route('/').get(getAllBranches);
-router.route('/:id').get(getBranchById);
-router.route('/:id').patch(updatebranchById);
-router.route('/:id').delete(deleteBranchById);
-router.route('/:id/drivers/create').post(isAuthenticated, isAuthorizedAdmin, createDriverForBranch);
-router.route('/:id/vehicles/create').post(isAuthenticated, isAuthorizedAdmin, createVehicleForBranch);
-router.route('/:id/populate').get(isAuthenticated, isAuthorizedAdmin, getBranchByIdPopulated);
-router.route('/:id/drivers').get(isAuthenticated, isAuthorizedAdmin, getDriversForBranch);
-router.route('/:id/vehicles').get(isAuthenticated, isAuthorizedAdmin, getVehiclesForBranch);
+
+router.route('/routes').get(getAllRoutes);
+router
+  .route('/:branchId')
+  .get(getBranchById)
+  .patch(updatebranchById)
+  .delete(deleteBranchById);
+router
+  .route('/:branchId/drivers/create')
+  .post(isAuthenticated, isAuthorizedBranch, createDriverForBranch);
+router
+  .route('/:branchId/vehicles/create')
+  .post(isAuthenticated, isAuthorizedBranch, createVehicleForBranch);
+router
+  .route('/:branchId/populate')
+  .get(isAuthenticated, isAuthorizedBranch, getBranchByIdPopulated);
+router
+  .route('/:branchId/drivers')
+  .get(isAuthenticated, isAuthorizedBranch, getDriversForBranch);
+router
+  .route('/:branchId/vehicles')
+  .get(isAuthenticated, isAuthorizedBranch, getVehiclesForBranch);
 router.route('/:branchId/assign-admin/:adminId').put(assignAdminToBranch);
-router.route('/:id/unassign-admin').delete(unassignAdminFromBranch);
+router.route('/:branchId/unassign-admin').delete(unassignAdminFromBranch);
+
+router.route('/:branchId/routes/create').post(createRoute);
+router
+  .route('/:branchId/routes/:routeId')
+  .get(getRouteById)
+  .put(updateRouteById)
+  .delete(deleteRouteById);
 
 module.exports = router;
