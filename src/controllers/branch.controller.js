@@ -5,6 +5,8 @@ const Driver = require('../models/driver');
 const Vehicle = require('../models/vehicle');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
+const Route = require('../models/route');
+const RouteStop = require('../models/routeStop');
 
 // POST /create
 exports.createBranch = catchAsyncErrors(async (req, res, next) => {
@@ -283,4 +285,95 @@ exports.unassignAdminFromBranch = catchAsyncErrors(async (req, res, next) => {
       message: 'Admin unassigned successfully',
     });
   });
+});
+
+// POST /:id/routes/create
+exports.createRoute = catchAsyncErrors(async (req, res, next) => {
+  const id = req.params.id;
+
+  const branch = await Branch.findById(id);
+
+  const routeObj = req.body;
+
+  const routeStops = routeObj.route_stops;
+
+  delete routeObj.route_stops;
+
+  let route = await Route.create(routeObj);
+
+  route = await Route.findById(route._id);
+
+  routeStops.forEach(async routeStopItem => {
+    const routeStop = await RouteStop.create(routeStopItem);
+
+    route.route_stops.push(routeStop._id);
+  })
+
+  await route.save();
+
+  res.status(StatusCodes.OK).json({
+    route
+  });
+  
+  // branch.routes.push(route._id);
+
+  // branch.save().then(() => {
+  //   res.status(StatusCodes.OK).json({
+  //     success: true,
+  //     message: 'Route added successfully',
+  //   });
+  // });
+});
+
+// GET /:id/routes
+exports.getAllRoutes = catchAsyncErrors(async (req, res, next) => {
+  Route.find().then((data) => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data
+    });
+  });
+});
+
+// GET /:branchId/routes/:routeId
+exports.getRouteById = catchAsyncErrors(async (req, res, nex) => {
+  const id = req.params.id;
+
+  const route = await Branch.findById(id);
+
+  if (!route) {
+    return next(new ErrorHandler('Route not found', StatusCodes.NOT_FOUND));
+  }
+
+  Route.findById(id).then((data) => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data,
+    });
+  });
+});
+
+// DELETE /:branchId/routes/:routeId
+exports.deleteRouteById = catchAsyncErrors(async (req, res, next) => {
+
+  const branchId = req.params.routeId;
+  const routeId = req.params.routeId;
+
+  const branch = await Branch.findById(branchId);
+  const route = await Route.findById(routeId);
+
+  if (!route) {
+    return next(new ErrorHandler('Route not found', StatusCodes.NOT_FOUND));
+  }
+
+  await Route.findByIdAndDelete(routeId);
+
+  branch.routes.filter(routeItem => routeItem._id !== route._id);
+
+  branch.save().then(() => {
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Route deleted successfully',
+    });
+  })
 });

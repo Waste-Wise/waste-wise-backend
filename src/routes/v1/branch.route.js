@@ -12,6 +12,10 @@ const {
   getVehiclesForBranch,
   assignAdminToBranch,
   unassignAdminFromBranch,
+  createRoute,
+  getRouteById,
+  deleteRouteById,
+  getAllRoutes,
 } = require('../../controllers/branch.controller');
 const { isAuthenticated, isAuthorizedAdmin } = require('../../middleware/auth');
 
@@ -41,5 +45,12 @@ router
   .get(isAuthenticated, isAuthorizedAdmin, getVehiclesForBranch);
 router.route('/:branchId/assign-admin/:adminId').put(assignAdminToBranch);
 router.route('/:id/unassign-admin').delete(unassignAdminFromBranch);
+
+router.route('/:id/routes/create').post(createRoute);
+router.route('/:id/routes').get(getAllRoutes);
+router
+  .route('/:branchId/routes/:routeId')
+  .get(getRouteById)
+  .delete(deleteRouteById);
 
 module.exports = router;

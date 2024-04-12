@@ -19,7 +19,7 @@ const routeStopSchema = new mongoose.Schema(
       lat: {
         type: String,
       },
-      long: {
+      lon: {
         type: String,
       },
     },
@@ -46,22 +46,22 @@ const routeStopSchema = new mongoose.Schema(
       secondary_text: {
         type: String,
       },
-      terms: [
-        {
-          offset: {
-            type: Number,
-          },
-          value: {
-            type: String,
-          },
-        },
-      ],
-      types: [
-        {
-            type: String
-        }
-      ]
     },
+    terms: [
+      {
+        offset: {
+          type: Number,
+        },
+        value: {
+          type: String,
+        },
+      },
+    ],
+    types: [
+      {
+        type: String,
+      },
+    ],
   },
   { timestamps: true }
 );

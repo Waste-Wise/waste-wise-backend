@@ -23,6 +23,12 @@ const branchSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Admin',
     },
+    routes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Route',
+      },
+    ],
   },
   { timestamps: true }
 );
