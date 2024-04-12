@@ -6,7 +6,6 @@ const Vehicle = require('../models/vehicle');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const Route = require('../models/route');
-const RouteStop = require('../models/routeStop');
 
 // POST /create
 exports.createBranch = catchAsyncErrors(async (req, res, next) => {
@@ -205,6 +204,7 @@ exports.getBranchByIdPopulated = catchAsyncErrors(async (req, res, next) => {
   await Branch.findById(id)
     .populate('drivers')
     .populate('vehicles')
+    .populate('routes')
     .then((data) => {
       res.status(StatusCodes.OK).json({
         success: true,
@@ -295,34 +295,15 @@ exports.createRoute = catchAsyncErrors(async (req, res, next) => {
 
   const routeObj = req.body;
 
-  const routeStops = routeObj.route_stops;
+  const route = await Route.create(routeObj);
 
-  delete routeObj.route_stops;
+  branch.routes.push(route._id);
 
-  let route = await Route.create(routeObj);
-
-  route = await Route.findById(route._id);
-
-  routeStops.forEach(async routeStopItem => {
-    const routeStop = await RouteStop.create(routeStopItem);
-
-    route.route_stops.push(routeStop._id);
-  })
-
-  await route.save();
+  await branch.save();
 
   res.status(StatusCodes.OK).json({
     route
   });
-  
-  // branch.routes.push(route._id);
-
-  // branch.save().then(() => {
-  //   res.status(StatusCodes.OK).json({
-  //     success: true,
-  //     message: 'Route added successfully',
-  //   });
-  // });
 });
 
 // GET /:id/routes
@@ -336,16 +317,16 @@ exports.getAllRoutes = catchAsyncErrors(async (req, res, next) => {
 });
 
 // GET /:branchId/routes/:routeId
-exports.getRouteById = catchAsyncErrors(async (req, res, nex) => {
-  const id = req.params.id;
+exports.getRouteById = catchAsyncErrors(async (req, res, next) => {
+  const routeId = req.params.routeId;
 
-  const route = await Branch.findById(id);
+  const route = await Route.findById(routeId);
 
   if (!route) {
     return next(new ErrorHandler('Route not found', StatusCodes.NOT_FOUND));
   }
 
-  Route.findById(id).then((data) => {
+  Route.findById(routeId).then((data) => {
     res.status(StatusCodes.OK).json({
       success: true,
       data,
@@ -353,14 +334,38 @@ exports.getRouteById = catchAsyncErrors(async (req, res, nex) => {
   });
 });
 
+// PUT /:branchId/routes/:routeId
+exports.updateRouteById = catchAsyncErrors(async (req, res, next) => {
+  const routeId = req.params.routeId;
+
+  const route = await Route.findById(routeId);
+
+  if (!route) {
+    return next(new ErrorHandler('Route not found', StatusCodes.NOT_FOUND));
+  }
+
+  Object.assign(route, req.body);
+
+  await route.save();
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Route updated successfully'
+  })
+});
+
 // DELETE /:branchId/routes/:routeId
 exports.deleteRouteById = catchAsyncErrors(async (req, res, next) => {
 
-  const branchId = req.params.routeId;
+  const branchId = req.params.branchId;
   const routeId = req.params.routeId;
 
   const branch = await Branch.findById(branchId);
   const route = await Route.findById(routeId);
+
+  if (!branch) {
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
+  }
 
   if (!route) {
     return next(new ErrorHandler('Route not found', StatusCodes.NOT_FOUND));

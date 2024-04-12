@@ -16,6 +16,7 @@ const {
   getRouteById,
   deleteRouteById,
   getAllRoutes,
+  updateRouteById,
 } = require('../../controllers/branch.controller');
 const { isAuthenticated, isAuthorizedAdmin } = require('../../middleware/auth');
 
@@ -51,6 +52,7 @@ router.route('/:id/routes').get(getAllRoutes);
 router
   .route('/:branchId/routes/:routeId')
   .get(getRouteById)
+  .put(updateRouteById)
   .delete(deleteRouteById);
 
 module.exports = router;
