@@ -39,7 +39,7 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
-exports.isAuthorizedAdmin = catchAsyncErrors(async (req, res, next) => {
+exports.isAuthorizedBranch = catchAsyncErrors(async (req, res, next) => {
   if (req.user.role !== 'branch') {
     return next(
       new ErrorHandler(
@@ -49,13 +49,9 @@ exports.isAuthorizedAdmin = catchAsyncErrors(async (req, res, next) => {
     ); // forbid user
   }
 
-  const id = req.params.id;
+  const branchId = req.params.branchId;
 
-  const branch = await Branch.findById(id);
-
-  const isAdminAssigned = branch.assignedAdmin == req.user._id;
-
-  if (!isAdminAssigned) {
+  if (req.user._id !== branchId) {
     return next(
       new ErrorHandler(
         `Not allowed to access this resource`,

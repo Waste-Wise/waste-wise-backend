@@ -4,7 +4,6 @@ const driverRouter = require('./driver.route');
 const branchRouter = require('./branch.route');
 const vehicleRouter = require('./vehicle.route');
 const authRouter = require('./auth.route');
-const adminRouter = require('./admin.route');
 
 const router = express.Router();
 
@@ -24,10 +23,6 @@ const routes = [
   {
     path: '/vehicles',
     route: vehicleRouter,
-  },
-  {
-    path: '/admins',
-    route: adminRouter,
   },
 ];
 
