@@ -205,3 +205,11 @@ exports.unassignVehicle = catchAsyncErrors(async (req, res, next) => {
     message: 'Vehicle unassigned successfully',
   });
 });
+
+// DELETE /test
+exports.testController = catchAsyncErrors(async (req, res, next) => {
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Driver is verified'
+  });
+});
