@@ -6,6 +6,8 @@ const Vehicle = require('../models/vehicle');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const Route = require('../models/route');
+const { branchService } = require('../services');
+const pick = require('../utils/pick');
 
 // POST /create
 exports.createBranch = catchAsyncErrors(async (req, res, next) => {
@@ -27,23 +29,19 @@ exports.createBranch = catchAsyncErrors(async (req, res, next) => {
 });
 
 // GET /
-exports.getAllBranches = catchAsyncErrors(async (req, res, next) => {
-  Branch.find().then((data) => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      data,
-    });
+exports.fetchAllBranches = catchAsyncErrors(async (req, res, next) => {
+  const result = await branchService.queryBranches();
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    data: result,
   });
 });
 
 // GET /:branchId
 exports.getBranchById = catchAsyncErrors(async (req, res, next) => {
-  const branchId = req.params.branchId;
-  const branch = await Branch.findById(branchId).select('+password');
 
-  if (!branch) {
-    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
-  }
+  const branch = await branchService.getBranchById(req.params.branchId);
 
   res.status(StatusCodes.OK).json({
     success: true,
@@ -53,6 +51,11 @@ exports.getBranchById = catchAsyncErrors(async (req, res, next) => {
 
 // PATCH /:branchId
 exports.updatebranchById = catchAsyncErrors(async (req, res, next) => {
+
+  // const updateBody = pick(req.body, ['name', 'email']);
+
+  // await branchService.updateBranchById(req.params.branchId, updateBody);
+
   const branchId = req.params.branchId;
 
   const branch = await Branch.findById(branchId);
@@ -67,25 +70,17 @@ exports.updatebranchById = catchAsyncErrors(async (req, res, next) => {
 
   res.status(StatusCodes.OK).json({
     success: true,
-    data: branch,
+    message: 'Branch updated successfully',
   });
 });
 
 // DELETE /:branchId
 exports.deleteBranchById = catchAsyncErrors(async (req, res, next) => {
-  const branchId = req.params.branchId;
+  await branchService.deleteBranchById(req.params.branchId);
 
-  const branch = await Branch.findById(branchId);
-
-  if (!branch) {
-    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
-  }
-
-  Branch.findByIdAndDelete(branchId).then(() => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'Branch deleted successfully',
-    });
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Branch deleted successfully',
   });
 });
 
