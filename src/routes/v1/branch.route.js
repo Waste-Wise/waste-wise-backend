@@ -49,8 +49,6 @@ router
 router
   .route('/:branchId/vehicles')
   .get(isAuthenticated, isAuthorizedBranch, getVehiclesForBranch);
-router.route('/:branchId/assign-admin/:adminId').put(assignAdminToBranch);
-router.route('/:branchId/unassign-admin').delete(unassignAdminFromBranch);
 
 router.route('/:branchId/routes/create').post(createRoute);
 router
