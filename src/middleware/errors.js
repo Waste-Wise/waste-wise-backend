@@ -15,15 +15,15 @@ module.exports = (err, req, res, next) => {
   }
 
   if (process.env.NODE_ENV === 'PRODUCTION') {
-
-    let error = {...err};
+    let error = { ...err };
+    error.message = err.message;
 
     // Handle duplicate key error
     if (err.code === 11000) {
       const message = `Duplicate ${Object.keys(err.keyValue)} entered`;
-      error = new ErrorHandler(message, 400);
-  }
-    
+      error = new ErrorHandler(message, StatusCodes.BAD_REQUEST);
+    }
+
     res.status(error.statusCode).json({
       success: false,
       message: error.message,
