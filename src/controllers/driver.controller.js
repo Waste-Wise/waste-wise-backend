@@ -1,9 +1,9 @@
 const { StatusCodes } = require('http-status-codes');
-const Driver = require('../models/driver');
-const ErrorHandler = require('../utils/ErrorHandler');
-const catchAsyncErrors = require('../middleware/catchAsyncErrors');
-const Vehicle = require('../models/vehicle');
 const mongoose = require('mongoose');
+const catchAsyncErrors = require('../middleware/catchAsyncErrors');
+const ErrorHandler = require('../utils/ErrorHandler');
+const Driver = require('../models/driver');
+const Vehicle = require('../models/vehicle');
 
 // POST /create
 exports.createDriver = catchAsyncErrors(async (req, res, next) => {
@@ -101,8 +101,8 @@ exports.updateDriverById = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
   }
 
-  Object.assign(driver, req.body)
-  
+  Object.assign(driver, req.body);
+
   await driver.save();
 
   res.status(StatusCodes.OK).json({
@@ -154,10 +154,9 @@ exports.assignVehicleToDriver = catchAsyncErrors(async (req, res, next) => {
   const previouslyAssignedVehicle = driver.assignedVehicle;
 
   if (previouslyAssignedVehicle) {
-    await Vehicle.findByIdAndUpdate(
-      previouslyAssignedVehicle._id,
-      { isDriverAssigned: false }
-    );
+    await Vehicle.findByIdAndUpdate(previouslyAssignedVehicle._id, {
+      isDriverAssigned: false,
+    });
   }
 
   driver.assignedVehicle = vehicle._id;
@@ -191,10 +190,9 @@ exports.unassignVehicle = catchAsyncErrors(async (req, res, next) => {
     );
   }
 
-  await Vehicle.findByIdAndUpdate(
-    driver.assignedVehicle._id,
-    { isDriverAssigned: false }
-  );
+  await Vehicle.findByIdAndUpdate(driver.assignedVehicle._id, {
+    isDriverAssigned: false,
+  });
 
   driver.assignedVehicle = null;
 
@@ -203,5 +201,13 @@ exports.unassignVehicle = catchAsyncErrors(async (req, res, next) => {
   res.status(StatusCodes.OK).json({
     success: true,
     message: 'Vehicle unassigned successfully',
+  });
+});
+
+// GET /test
+exports.testController = catchAsyncErrors(async (req, res, next) => {
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Driver is verified',
   });
 });

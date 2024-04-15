@@ -3,6 +3,7 @@ const { StatusCodes } = require('http-status-codes');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('./catchAsyncErrors');
 const Branch = require('../models/branch');
+const Driver = require('../models/driver');
 
 // authenticate user by bearer token
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
@@ -59,5 +60,25 @@ exports.isAuthorizedBranch = catchAsyncErrors(async (req, res, next) => {
       )
     ); // forbid user
   }
+  next();
+});
+
+exports.isVerifiedDriver = catchAsyncErrors(async (req, res, next) => {
+  if (req.user.role !== 'driver') {
+    return next(
+      new ErrorHandler(
+        `${req.user.role} Not allowed to access this resource`,
+        StatusCodes.FORBIDDEN
+      )
+    ); // forbid user
+  }
+
+  if (!req.user.isVerified) {
+    return res.status(StatusCodes.UNAUTHORIZED).json({
+      success: false,
+      message: 'Driver not verified',
+    });
+  }
+
   next();
 });
