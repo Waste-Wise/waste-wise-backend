@@ -11,26 +11,19 @@ const pick = require('../utils/pick');
 
 // POST /create
 exports.createBranch = catchAsyncErrors(async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const branchObj = pick(req.body, ['name', 'email', 'password']);
 
-  const branchObj = {
-    name,
-    email,
-    password,
-  };
+  await branchService.createBranch(branchObj);
 
-  Branch.create(branchObj).then((data) => {
-    res.status(StatusCodes.CREATED).json({
-      success: true,
-      message: 'Branch created successfully',
-      data,
-    });
+  res.status(StatusCodes.CREATED).json({
+    success: true,
+    message: 'Branch created successfully',
   });
 });
 
 // GET /
 exports.fetchAllBranches = catchAsyncErrors(async (req, res, next) => {
-  const result = await branchService.queryBranches();
+  const result = await branchService.getAllBranches();
 
   res.status(StatusCodes.OK).json({
     success: true,
@@ -39,8 +32,7 @@ exports.fetchAllBranches = catchAsyncErrors(async (req, res, next) => {
 });
 
 // GET /:branchId
-exports.getBranchById = catchAsyncErrors(async (req, res, next) => {
-
+exports.fetchBranchById = catchAsyncErrors(async (req, res, next) => {
   const branch = await branchService.getBranchById(req.params.branchId);
 
   res.status(StatusCodes.OK).json({
@@ -51,22 +43,9 @@ exports.getBranchById = catchAsyncErrors(async (req, res, next) => {
 
 // PATCH /:branchId
 exports.updatebranchById = catchAsyncErrors(async (req, res, next) => {
+  const updateBody = pick(req.body, ['name', 'email']);
 
-  // const updateBody = pick(req.body, ['name', 'email']);
-
-  // await branchService.updateBranchById(req.params.branchId, updateBody);
-
-  const branchId = req.params.branchId;
-
-  const branch = await Branch.findById(branchId);
-
-  if (!branch) {
-    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
-  }
-
-  branch = await Branch.findByIdAndUpdate(branchId, req.body, {
-    new: true,
-  });
+  await branchService.updateBranchById(req.params.branchId, updateBody);
 
   res.status(StatusCodes.OK).json({
     success: true,
@@ -81,6 +60,18 @@ exports.deleteBranchById = catchAsyncErrors(async (req, res, next) => {
   res.status(StatusCodes.OK).json({
     success: true,
     message: 'Branch deleted successfully',
+  });
+});
+
+// GET /:branchId/populate
+exports.getBranchByIdPopulated = catchAsyncErrors(async (req, res, next) => {
+  const branch = await branchService.getBranchhByIdPopulated(
+    req.params.branchId
+  );
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    data: branch,
   });
 });
 
@@ -186,28 +177,6 @@ exports.createVehicleForBranch = catchAsyncErrors(async (req, res, next) => {
       data,
     });
   });
-});
-
-// GET /:branchId/populate
-exports.getBranchByIdPopulated = catchAsyncErrors(async (req, res, next) => {
-  const branchId = req.params.branchId;
-
-  const branch = await Branch.findById(branchId);
-
-  if (!branch) {
-    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
-  }
-
-  await Branch.findById(branchId)
-    .populate('drivers')
-    .populate('vehicles')
-    .populate('routes')
-    .then((data) => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
-    });
 });
 
 // GET /:branchId/drivers

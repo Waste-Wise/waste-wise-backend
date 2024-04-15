@@ -2,7 +2,7 @@ const express = require('express');
 const {
   createBranch,
   fetchAllBranches,
-  getBranchById,
+  fetchBranchById,
   updatebranchById,
   deleteBranchById,
   createDriverForBranch,
@@ -29,7 +29,7 @@ router.route('/').get(fetchAllBranches);
 router.route('/routes').get(getAllRoutes);
 router
   .route('/:branchId')
-  .get(getBranchById)
+  .get(fetchBranchById)
   .patch(updatebranchById)
   .delete(deleteBranchById);
 router
