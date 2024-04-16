@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const roles = require('../../config/role');
 
 const branchSchema = new mongoose.Schema(
   {
@@ -11,7 +12,7 @@ const branchSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: 'branch',
+      default: roles.BRANCH_ROLE,
     },
     password: {
       type: String,
@@ -73,7 +74,7 @@ branchSchema.methods.getJwt = function () {
 };
 
 branchSchema.methods.getRefreshToken = function () {
-  return jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ _id: this._id, role: this.role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME,
   });
 };
