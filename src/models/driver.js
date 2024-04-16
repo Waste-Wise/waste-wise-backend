@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const roles = require('../../config/role');
 
 const driverSchema = new mongoose.Schema(
   {
@@ -36,7 +37,7 @@ const driverSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: 'driver',
+      default: roles.DRIVER_ROLE,
     },
     password: {
       type: String,
@@ -79,7 +80,7 @@ driverSchema.methods.getJwt = function () {
 };
 
 driverSchema.methods.getRefreshToken = function () {
-  return jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ _id: this._id, role: this.role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_REFRESH_EXPIRATION_TIME,
   });
 };

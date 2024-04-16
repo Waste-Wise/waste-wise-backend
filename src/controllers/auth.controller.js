@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 const { StatusCodes } = require('http-status-codes');
 const jwt = require('jsonwebtoken');
+const roles = require('../../config/role');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
-const Branch = require('../models/branch');
 const ErrorHandler = require('../utils/ErrorHandler');
+const Branch = require('../models/branch');
 const Driver = require('../models/driver');
 
 // POST /login
@@ -53,7 +54,20 @@ exports.refreshAuth = catchAsyncErrors(async (req, res, next) => {
       });
     }
 
-    const user = await Branch.findById(decoded._id);
+    // Remove this block after 17th April 2024
+    if (!decoded.role) {
+      decoded.role = 'branch';
+    }
+
+    let user = undefined;
+
+    if (decoded.role === roles.BRANCH_ROLE) {
+      user = await Branch.findById(decoded._id);
+    }
+
+    if (decoded.role === roles.DRIVER_ROLE) {
+      user = await Driver.findById(decoded._id);
+    }
 
     if (!user) {
       return next(new ErrorHandler('User not found', StatusCodes.NOT_FOUND));
