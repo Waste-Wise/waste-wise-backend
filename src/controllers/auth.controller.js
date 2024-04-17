@@ -54,11 +54,6 @@ exports.refreshAuth = catchAsyncErrors(async (req, res, next) => {
       });
     }
 
-    // Remove this block after 17th April 2024
-    if (!decoded.role) {
-      decoded.role = 'branch';
-    }
-
     let user = undefined;
 
     if (decoded.role === roles.BRANCH_ROLE) {
