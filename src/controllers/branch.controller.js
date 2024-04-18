@@ -45,11 +45,15 @@ exports.fetchBranchById = catchAsyncErrors(async (req, res, next) => {
 exports.updatebranchById = catchAsyncErrors(async (req, res, next) => {
   const updateBody = pick(req.body, ['name', 'email']);
 
-  await branchService.updateBranchById(req.params.branchId, updateBody);
+  const branch = await branchService.updateBranchById(
+    req.params.branchId,
+    updateBody
+  );
 
   res.status(StatusCodes.OK).json({
     success: true,
     message: 'Branch updated successfully',
+    data: branch,
   });
 });
 
