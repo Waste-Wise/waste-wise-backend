@@ -2,8 +2,6 @@ const jwt = require('jsonwebtoken');
 const { StatusCodes } = require('http-status-codes');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('./catchAsyncErrors');
-const Branch = require('../models/branch');
-const Driver = require('../models/driver');
 
 // authenticate user by bearer token
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
@@ -72,13 +70,15 @@ exports.isVerifiedDriver = catchAsyncErrors(async (req, res, next) => {
       )
     ); // forbid user
   }
-
-  if (!req.user.isVerified) {
-    return res.status(StatusCodes.UNAUTHORIZED).json({
-      success: false,
-      message: 'Driver not verified',
-    });
+  
+  if(!req.user.isVerified) {
+    return next(
+      new ErrorHandler(
+        'Driver not verified',
+        StatusCodes.UNAUTHORIZED
+      )
+    ); // forbid user
   }
-
+  
   next();
 });

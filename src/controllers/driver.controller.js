@@ -211,3 +211,4 @@ exports.testController = catchAsyncErrors(async (req, res, next) => {
     message: 'Driver is verified',
   });
 });
+

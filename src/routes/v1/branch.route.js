@@ -1,8 +1,8 @@
 const express = require('express');
 const {
   createBranch,
-  getAllBranches,
-  getBranchById,
+  fetchAllBranches,
+  fetchBranchById,
   updatebranchById,
   deleteBranchById,
   createDriverForBranch,
@@ -10,8 +10,6 @@ const {
   createVehicleForBranch,
   getDriversForBranch,
   getVehiclesForBranch,
-  assignAdminToBranch,
-  unassignAdminFromBranch,
   createRoute,
   getRouteById,
   deleteRouteById,
@@ -26,12 +24,12 @@ const {
 const router = express.Router();
 
 router.route('/create').post(createBranch);
-router.route('/').get(getAllBranches);
+router.route('/').get(fetchAllBranches);
 
 router.route('/routes').get(getAllRoutes);
 router
   .route('/:branchId')
-  .get(getBranchById)
+  .get(fetchBranchById)
   .patch(updatebranchById)
   .delete(deleteBranchById);
 router
