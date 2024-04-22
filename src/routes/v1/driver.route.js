@@ -7,12 +7,16 @@ const {
   deleteDriverById,
   assignVehicleToDriver,
   unassignVehicle,
+  testController,
 } = require('../../controllers/driver.controller');
+const { isAuthenticated, isVerifiedDriver } = require('../../middleware/auth');
 
 const router = express.Router();
 
 router.route('/create').post(createDriver);
 router.route('/').get(getAllDrivers);
+router.route('/test').get(isAuthenticated, isVerifiedDriver, testController);
+
 router
   .route('/:id')
   .get(getDriverById)
