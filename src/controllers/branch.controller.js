@@ -18,12 +18,11 @@ exports.createBranch = catchAsyncErrors(async (req, res, next) => {
     password,
   };
 
-  Branch.create(branchObj).then((data) => {
-    res.status(StatusCodes.CREATED).json({
-      success: true,
-      message: 'Branch created successfully',
-      data,
-    });
+  await Branch.create(branchObj);
+
+  res.status(StatusCodes.CREATED).json({
+    success: true,
+    message: 'Branch created successfully',
   });
 });
 
