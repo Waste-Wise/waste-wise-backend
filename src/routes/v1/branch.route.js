@@ -10,13 +10,14 @@ const {
   createVehicleForBranch,
   getDriversForBranch,
   getVehiclesForBranch,
-  assignAdminToBranch,
-  unassignAdminFromBranch,
   createRoute,
   getRouteById,
   deleteRouteById,
   getAllRoutes,
   updateRouteById,
+  createSchedule,
+  getSchedule,
+  updateSchedule,
 } = require('../../controllers/branch.controller');
 const {
   isAuthenticated,
@@ -56,5 +57,13 @@ router
   .get(getRouteById)
   .put(updateRouteById)
   .delete(deleteRouteById);
+
+router
+  .route('/:branchId/drivers/:driverId/schedules/create')
+  .post(isAuthenticated, isAuthorizedBranch, createSchedule);
+router
+  .route('/:branchId/drivers/:driverId/schedule')
+  .get(isAuthenticated, isAuthorizedBranch, getSchedule)
+  .put(isAuthenticated, isAuthorizedBranch, updateSchedule);
 
 module.exports = router;
