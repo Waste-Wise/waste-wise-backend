@@ -6,6 +6,7 @@ const Vehicle = require('../models/vehicle');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const Route = require('../models/route');
+const Schedule = require('../models/schedule');
 
 // POST /create
 exports.createBranch = catchAsyncErrors(async (req, res, next) => {
@@ -347,5 +348,80 @@ exports.deleteRouteById = catchAsyncErrors(async (req, res, next) => {
       success: true,
       message: 'Route deleted successfully',
     });
+  });
+});
+
+// POST /:branchId/drivers/:driverId/schedules/create
+exports.createSchedule = catchAsyncErrors(async (req, res, next) => {
+  const { branchId, driverId } = req.params;
+  const scheduleObj = req.body;
+
+  const branch = await Branch.findById(branchId);
+
+  if (!branch) {
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
+  }
+
+  const driver = await Driver.findById(driverId);
+
+  if (!driver) {
+    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+  }
+
+  const schedule = await Schedule.create(scheduleObj);
+
+  driver.assignedSchedule = schedule._id;
+
+  driver.save();
+
+  res.status(StatusCodes.CREATED).json({
+    success: true,
+    message: 'Schedule created and assigned successfully',
+    data: schedule,
+  });
+});
+
+// GET /:branchId/drivers/:driverId/schedule
+exports.getSchedule = catchAsyncErrors(async (req, res, next) => {
+  const { driverId } = req.params;
+
+  const driver = await Driver.findById(driverId).populate('assignedSchedule');
+
+  if (!driver) {
+    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+  }
+
+  res.status(StatusCodes.ACCEPTED).json({
+    success: true,
+    data: driver.assignedSchedule,
+  });
+});
+
+// PUT /:branchId/drivers/:driverId/schedule
+exports.updateSchedule = catchAsyncErrors(async (req, res, next) => {
+  const { driverId } = req.params;
+  const scheduleObj = req.body;
+
+  const driver = await Driver.findById(driverId);
+
+  if (!driver) {
+    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+  }
+
+  if (!driver.assignedSchedule) {
+    return next(
+      new ErrorHandler('Schedule not created for driver', StatusCodes.NOT_FOUND)
+    );
+  }
+
+  const schedule = await Schedule.findById(driver.assignedSchedule);
+
+  Object.assign(schedule, scheduleObj);
+
+  schedule.save();
+
+  res.status(StatusCodes.ACCEPTED).json({
+    success: true,
+    message: 'Schedule updated successfully',
   });
 });
