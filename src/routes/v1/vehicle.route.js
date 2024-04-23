@@ -1,6 +1,5 @@
 const express = require('express');
 const {
-  createVehicle,
   getAllVehicles,
   getVehicleById,
   updateVehicleById,
@@ -12,7 +11,6 @@ const {
 
 const router = express.Router();
 
-router.route('/create').post(createVehicle);
 router.route('/').get(getAllVehicles);
 router
   .route('/:id')

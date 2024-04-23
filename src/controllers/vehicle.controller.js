@@ -4,24 +4,6 @@ const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const Position = require('../models/position');
 
-// POST /create
-exports.createVehicle = catchAsyncErrors(async (req, res, next) => {
-  const { number, type } = req.body;
-
-  const vehicleObj = {
-    number,
-    type,
-  };
-
-  const vehicle = await Vehicle.create(vehicleObj);
-
-  res.status(StatusCodes.CREATED).json({
-    success: true,
-    message: 'Vehicle created successfully',
-    data: vehicle,
-  });
-});
-
 // GET /
 exports.getAllVehicles = catchAsyncErrors(async (req, res, next) => {
   Vehicle.find().then((data) => {

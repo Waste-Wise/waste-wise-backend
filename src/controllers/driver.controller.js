@@ -5,67 +5,6 @@ const ErrorHandler = require('../utils/ErrorHandler');
 const Driver = require('../models/driver');
 const Vehicle = require('../models/vehicle');
 
-// POST /create
-exports.createDriver = catchAsyncErrors(async (req, res, next) => {
-  const {
-    empNum,
-    name,
-    email,
-    nic,
-    mobileNumber,
-    password,
-    avatar,
-    assignedRoute,
-    assignedVehicle,
-  } = req.body;
-
-  const driverObj = {
-    empNum,
-    name,
-    email,
-    nic,
-    mobileNumber,
-    password,
-  };
-
-  if (avatar) {
-    driverObj.avatar = avatar;
-  }
-
-  if (assignedRoute) {
-    driverObj.assignedRoute = assignedRoute;
-  }
-
-  if (assignedVehicle) {
-    const vehicleObjId = new mongoose.Types.ObjectId(assignedVehicle);
-    const vehicle = await Vehicle.findById(vehicleObjId);
-
-    if (!vehicle) {
-      return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
-    }
-
-    if (vehicle.isDriverAssigned) {
-      return next(
-        new ErrorHandler('Vehicle already assigned', StatusCodes.CONFLICT)
-      );
-    }
-
-    vehicle.isDriverAssigned = true;
-
-    await vehicle.save();
-
-    driverObj.assignedVehicle = vehicleObjId;
-  }
-
-  const driver = await Driver.create(driverObj);
-
-  res.status(StatusCodes.CREATED).json({
-    success: true,
-    message: 'Driver created successfully',
-    data: driver,
-  });
-});
-
 // GET /
 exports.getAllDrivers = catchAsyncErrors(async (req, res, next) => {
   Driver.find().then((data) => {
