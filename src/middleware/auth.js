@@ -4,6 +4,7 @@ const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('./catchAsyncErrors');
 const Branch = require('../models/branch');
 const Driver = require('../models/driver');
+const roles = require('../../config/role');
 
 // authenticate user by bearer token
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
@@ -20,34 +21,28 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 
   const token = authHeader?.split(' ')[1];
 
-  if (token) {
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        return res.status(StatusCodes.FORBIDDEN).json({
-          success: false,
-          message: 'Invalid token',
-        });
-      }
-
-      req.user = decoded;
-      next();
-    });
-  } else {
-    res.status(StatusCodes.UNAUTHORIZED).json({
-      success: false,
-      message: 'Unauthorized',
-    });
+  if (!token) {
+    return next(new ErrorHandler('Unauthorized', StatusCodes.UNAUTHORIZED));
   }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return next(new ErrorHandler('Invalid token', StatusCodes.FORBIDDEN));
+    }
+
+    req.user = decoded;
+    next();
+  });
 });
 
 exports.isAuthorizedBranch = catchAsyncErrors(async (req, res, next) => {
-  if (req.user.role !== 'branch') {
+  if (req.user.role !== roles.BRANCH_ROLE) {
     return next(
       new ErrorHandler(
         `${req.user.role} Not allowed to access this resource`,
         StatusCodes.FORBIDDEN
       )
-    ); // forbid user
+    );
   }
 
   const branchId = req.params.branchId;
@@ -58,13 +53,13 @@ exports.isAuthorizedBranch = catchAsyncErrors(async (req, res, next) => {
         `Not allowed to access this resource`,
         StatusCodes.FORBIDDEN
       )
-    ); // forbid user
+    );
   }
   next();
 });
 
 exports.isVerifiedDriver = catchAsyncErrors(async (req, res, next) => {
-  if (req.user.role !== 'driver') {
+  if (req.user.role !== roles.DRIVER_ROLE) {
     return next(
       new ErrorHandler(
         `${req.user.role} Not allowed to access this resource`,
@@ -74,10 +69,9 @@ exports.isVerifiedDriver = catchAsyncErrors(async (req, res, next) => {
   }
 
   if (!req.user.isVerified) {
-    return res.status(StatusCodes.UNAUTHORIZED).json({
-      success: false,
-      message: 'Driver not verified',
-    });
+    return next(
+      new ErrorHandler('Driver not verified', StatusCodes.UNAUTHORIZED)
+    );
   }
 
   next();

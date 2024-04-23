@@ -8,17 +8,17 @@ const Position = require('../models/position');
 exports.createVehicle = catchAsyncErrors(async (req, res, next) => {
   const { number, type } = req.body;
 
-  const vehicle = {
+  const vehicleObj = {
     number,
     type,
   };
 
-  Vehicle.create(vehicle).then((data) => {
-    res.status(StatusCodes.CREATED).json({
-      success: true,
-      message: 'Vehicle created successfully',
-      data,
-    });
+  const vehicle = await Vehicle.create(vehicleObj);
+
+  res.status(StatusCodes.CREATED).json({
+    success: true,
+    message: 'Vehicle created successfully',
+    data: vehicle,
   });
 });
 

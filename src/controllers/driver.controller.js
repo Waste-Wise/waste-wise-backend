@@ -57,11 +57,12 @@ exports.createDriver = catchAsyncErrors(async (req, res, next) => {
     driverObj.assignedVehicle = vehicleObjId;
   }
 
-  Driver.create(driverObj).then(() => {
-    res.status(StatusCodes.CREATED).json({
-      success: true,
-      message: 'Driver created successfully',
-    });
+  const driver = await Driver.create(driverObj);
+
+  res.status(StatusCodes.CREATED).json({
+    success: true,
+    message: 'Driver created successfully',
+    data: driver,
   });
 });
 
@@ -121,11 +122,11 @@ exports.deleteDriverById = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
   }
 
-  Driver.findByIdAndDelete(id).then(() => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'Driver deleted successfully',
-    });
+  await driver.deleteOne();
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Driver deleted successfully',
   });
 });
 

@@ -18,11 +18,12 @@ exports.createBranch = catchAsyncErrors(async (req, res, next) => {
     password,
   };
 
-  await Branch.create(branchObj);
+  const branch = await Branch.create(branchObj);
 
   res.status(StatusCodes.CREATED).json({
     success: true,
     message: 'Branch created successfully',
+    data: branch,
   });
 });
 
@@ -61,9 +62,9 @@ exports.updatebranchById = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  branch = await Branch.findByIdAndUpdate(branchId, req.body, {
-    new: true,
-  });
+  Object.assign(branch, req.body);
+
+  await branch.save();
 
   res.status(StatusCodes.OK).json({
     success: true,
@@ -81,11 +82,11 @@ exports.deleteBranchById = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  Branch.findByIdAndDelete(branchId).then(() => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'Branch deleted successfully',
-    });
+  await branch.deleteOne();
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Branch deleted successfully',
   });
 });
 
@@ -156,11 +157,11 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 
   branch.drivers.push(driver._id);
 
-  await branch.save().then((data) => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      data,
-    });
+  await branch.save();
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    data: driver,
   });
 });
 
@@ -185,11 +186,12 @@ exports.createVehicleForBranch = catchAsyncErrors(async (req, res, next) => {
 
   branch.vehicles.push(vehicle._id);
 
-  await branch.save().then((data) => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      data,
-    });
+  await branch.save();
+
+  res.status(StatusCodes.ACCEPTED).json({
+    success: true,
+    message: 'Vehicle added to branch successfully',
+    data: vehicle,
   });
 });
 
@@ -197,62 +199,50 @@ exports.createVehicleForBranch = catchAsyncErrors(async (req, res, next) => {
 exports.getBranchByIdPopulated = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.branchId;
 
-  const branch = await Branch.findById(branchId);
+  const branch = await Branch.findById(branchId)
+    .populate('drivers')
+    .populate('vehicles')
+    .populate('routes');
 
   if (!branch) {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
-
-  await Branch.findById(branchId)
-    .populate('drivers')
-    .populate('vehicles')
-    .populate('routes')
-    .then((data) => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        data,
-      });
-    });
+  res.status(StatusCodes.OK).json({
+    success: true,
+    data: branch,
+  });
 });
 
 // GET /:branchId/drivers
 exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.branchId;
 
-  const branch = await Branch.findById(branchId);
+  const branch = await Branch.findById(branchId).populate('drivers');
 
   if (!branch) {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  await Branch.findById(branchId)
-    .populate('drivers')
-    .then((data) => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        data: data.drivers,
-      });
-    });
+  res.status(StatusCodes.OK).json({
+    success: true,
+    data: branch.drivers,
+  });
 });
 
 // GET /:branchId/vehicles
 exports.getVehiclesForBranch = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.branchId;
 
-  const branch = await Branch.findById(branchId);
+  const branch = await Branch.findById(branchId).populate('vehicles');
 
   if (!branch) {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  await Branch.findById(branchId)
-    .populate('vehicles')
-    .then((data) => {
-      res.status(StatusCodes.OK).json({
-        success: true,
-        data: data.vehicles,
-      });
-    });
+  res.status(StatusCodes.OK).json({
+    success: true,
+    data: branch.vehicles,
+  });
 });
 
 // POST /:branchId/routes/create
@@ -270,7 +260,9 @@ exports.createRoute = catchAsyncErrors(async (req, res, next) => {
   await branch.save();
 
   res.status(StatusCodes.OK).json({
-    route,
+    success: true,
+    message: 'Route created successfully',
+    data: route,
   });
 });
 
@@ -294,11 +286,9 @@ exports.getRouteById = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Route not found', StatusCodes.NOT_FOUND));
   }
 
-  Route.findById(routeId).then((data) => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      data,
-    });
+  res.status(StatusCodes.OK).json({
+    success: true,
+    data: route,
   });
 });
 
@@ -338,15 +328,15 @@ exports.deleteRouteById = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Route not found', StatusCodes.NOT_FOUND));
   }
 
-  await Route.findByIdAndDelete(routeId);
+  await route.deleteOne();
 
-  branch.routes.filter((routeItem) => routeItem._id !== route._id);
+  branch.routes.filter((routeItem) => routeItem.id !== route.id);
 
-  branch.save().then(() => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'Route deleted successfully',
-    });
+  await branch.save();
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Route deleted successfully',
   });
 });
 
@@ -371,7 +361,7 @@ exports.createSchedule = catchAsyncErrors(async (req, res, next) => {
 
   driver.assignedSchedule = schedule._id;
 
-  driver.save();
+  await driver.save();
 
   res.status(StatusCodes.CREATED).json({
     success: true,
@@ -417,7 +407,7 @@ exports.updateSchedule = catchAsyncErrors(async (req, res, next) => {
 
   Object.assign(schedule, scheduleObj);
 
-  schedule.save();
+  await schedule.save();
 
   res.status(StatusCodes.ACCEPTED).json({
     success: true,

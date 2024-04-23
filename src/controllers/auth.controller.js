@@ -48,10 +48,7 @@ exports.refreshAuth = catchAsyncErrors(async (req, res, next) => {
 
   jwt.verify(refresh_token, process.env.JWT_SECRET, async (err, decoded) => {
     if (err) {
-      return res.status(StatusCodes.FORBIDDEN).json({
-        success: false,
-        message: 'Invalid token',
-      });
+      return next(new ErrorHandler('Invalid token', StatusCodes.FORBIDDEN));
     }
 
     let user = undefined;
@@ -146,7 +143,7 @@ exports.resetPasswordRequestDriver = catchAsyncErrors(
 
     res.status(200).json({
       success: true,
-      message: 'Reset request success',
+      message: 'Password reset request success',
     });
   }
 );
@@ -178,7 +175,10 @@ exports.resetPasswordDriver = catchAsyncErrors(async (req, res, next) => {
 
   if (user.isVerified) {
     return next(
-      new ErrorHandler('Driver is already verified', StatusCodes.CONFLICT)
+      new ErrorHandler(
+        'Driver is already verified. Please request for password reset first',
+        StatusCodes.CONFLICT
+      )
     );
   }
 
