@@ -35,7 +35,6 @@ const driverSchema = new mongoose.Schema(
     assignedSchedule: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Schedule',
-      required: true,
     },
     role: {
       type: String,
