@@ -1,5 +1,4 @@
 const { StatusCodes } = require('http-status-codes');
-const mongoose = require('mongoose');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const ErrorHandler = require('../utils/ErrorHandler');
 const Driver = require('../models/driver');

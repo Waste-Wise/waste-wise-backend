@@ -60,11 +60,11 @@ exports.deleteVehicleById = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
   }
 
-  Vehicle.findByIdAndDelete(id).then(() => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'Vehicle deleted successfully',
-    });
+  await vehicle.deleteOne();
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Vehicle deleted successfully',
   });
 });
 
@@ -88,11 +88,11 @@ exports.assignPosition = catchAsyncErrors(async (req, res, next) => {
 
   vehicle.position = position;
 
-  vehicle.save().then(() => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'Position assigned successfully',
-    });
+  await  vehicle.save();
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Position assigned successfully',
   });
 });
 
@@ -130,10 +130,10 @@ exports.unassignPosistion = catchAsyncErrors(async (req, res, next) => {
 
   vehicle.position = null;
 
-  vehicle.save().then(() => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'Position unassigned successfully',
-    });
+  await vehicle.save();
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Position unassigned successfully',
   });
 });

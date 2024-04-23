@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const { StatusCodes } = require('http-status-codes');
 const jwt = require('jsonwebtoken');
 const roles = require('../../config/role');

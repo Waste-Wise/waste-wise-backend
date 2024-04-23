@@ -1,5 +1,4 @@
 const express = require('express');
-const { StatusCodes } = require('http-status-codes');
 const driverRouter = require('./driver.route');
 const branchRouter = require('./branch.route');
 const vehicleRouter = require('./vehicle.route');
