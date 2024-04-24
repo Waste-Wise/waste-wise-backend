@@ -7,6 +7,7 @@ const {
   getPosition,
   assignPosition,
   unassignPosistion,
+  unassignDriver,
 } = require('../../controllers/vehicle.controller');
 
 const router = express.Router();
@@ -17,6 +18,7 @@ router
   .get(getVehicleById)
   .patch(updateVehicleById)
   .delete(deleteVehicleById);
+router.route('/:id/unassign-driver').delete(unassignDriver);
 router
   .route('/:id/position')
   .get(getPosition)

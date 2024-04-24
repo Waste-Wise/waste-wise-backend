@@ -68,6 +68,26 @@ exports.deleteVehicleById = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+// DELETE /:id/unassign-driver
+exports.unassignDriver = catchAsyncErrors(async (req, res, next) => {
+  const id = req.params.id;
+
+  const vehicle = await Vehicle.findById(id);
+
+  if (!vehicle) {
+    return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
+  }
+
+  vehicle.isDriverAssigned = false;
+
+  await vehicle.save();
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: 'Vehicle freed successfully',
+  });
+});
+
 // PUT /vehicles/:id/position
 exports.assignPosition = catchAsyncErrors(async (req, res, next) => {
   const { latitude, longitude } = req.body;
@@ -88,7 +108,7 @@ exports.assignPosition = catchAsyncErrors(async (req, res, next) => {
 
   vehicle.position = position;
 
-  await  vehicle.save();
+  await vehicle.save();
 
   res.status(StatusCodes.OK).json({
     success: true,
