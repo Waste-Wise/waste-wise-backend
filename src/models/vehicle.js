@@ -6,6 +6,7 @@ const vehicleSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Vehicle number is required'],
       maxLength: [15, 'Vehicle number can not exceed 100 characters'],
+      unique: true,
     },
     type: {
       type: String,

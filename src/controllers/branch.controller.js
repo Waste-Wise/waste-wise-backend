@@ -188,7 +188,7 @@ exports.createVehicleForBranch = catchAsyncErrors(async (req, res, next) => {
 
   await branch.save();
 
-  res.status(StatusCodes.ACCEPTED).json({
+  res.status(StatusCodes.CREATED).json({
     success: true,
     message: 'Vehicle added to branch successfully',
     data: vehicle,
