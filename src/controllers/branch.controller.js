@@ -159,7 +159,7 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 
   await branch.save();
 
-  res.status(StatusCodes.OK).json({
+  res.status(StatusCodes.CREATED).json({
     success: true,
     data: driver,
   });
