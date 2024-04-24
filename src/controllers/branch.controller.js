@@ -129,7 +129,7 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
     driverObj.assignedRoute = assignedRoute;
   }
 
-  const driver = await Driver.create(driverObj);
+  let driver = await Driver.create(driverObj);
 
   if (assignedVehicle) {
     const vehicleObjId = new mongoose.Types.ObjectId(assignedVehicle);
@@ -158,6 +158,8 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
   branch.drivers.push(driver._id);
 
   await branch.save();
+
+  driver = await Driver.findById(driver._id);
 
   res.status(StatusCodes.CREATED).json({
     success: true,
@@ -378,6 +380,10 @@ exports.getSchedule = catchAsyncErrors(async (req, res, next) => {
 
   if (!driver) {
     return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+  }
+
+  if(!driver.assignedSchedule) {
+    return next(new ErrorHandler('Schedule not assigned', StatusCodes.NOT_FOUND));
   }
 
   res.status(StatusCodes.ACCEPTED).json({
