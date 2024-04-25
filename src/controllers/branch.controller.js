@@ -437,6 +437,16 @@ exports.assignDriver = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
   }
 
+  if (!driver.status) {
+    return next(new ErrorHandler('Driver is disabled', StatusCodes.CONFLICT));
+  }
+
+  if (!driver.isVerified) {
+    return next(
+      new ErrorHandler('Driver not verified', StatusCodes.UNAUTHORIZED)
+    );
+  }
+
   schedule = await Schedule.findById(schedule._id);
 
   schedule.assignedDriver = driver.id;
