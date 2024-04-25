@@ -25,6 +25,12 @@ const branchSchema = new mongoose.Schema(
       required: [true, 'Email is required'],
       unique: true,
     },
+    schedules: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Schedule',
+      },
+    ],
     drivers: [
       {
         type: mongoose.Schema.Types.ObjectId,

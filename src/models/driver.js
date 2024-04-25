@@ -32,10 +32,6 @@ const driverSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vehicle',
     },
-    assignedSchedule: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Schedule',
-    },
     role: {
       type: String,
       default: roles.DRIVER_ROLE,
@@ -43,7 +39,7 @@ const driverSchema = new mongoose.Schema(
     password: {
       type: String,
       select: false,
-      required: true
+      required: true,
     },
     avatar: {
       type: String,
