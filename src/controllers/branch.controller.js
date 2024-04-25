@@ -232,6 +232,34 @@ exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+// PUT /:branchId/drivers/:driverId/toggle-status
+exports.toggleDriverStatus = catchAsyncErrors(async (req, res, next) => {
+  const { branchId, driverId } = req.params;
+
+  const branch = await Branch.findById(branchId).populate('drivers');
+
+  if (!branch) {
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
+  }
+
+  let driver = branch.drivers.find((driverItem) => driverItem.id === driverId);
+
+  if (!driver) {
+    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+  }
+
+  driver = await Driver.findById(driverId);
+
+  driver.status = !driver.status;
+
+  await driver.save();
+
+  res.status(StatusCodes.ACCEPTED).json({
+    success: true,
+    message: `Driver assigned status: ${driver.status}`,
+  });
+});
+
 // GET /:branchId/vehicles
 exports.getVehiclesForBranch = catchAsyncErrors(async (req, res, next) => {
   const branchId = req.params.branchId;
@@ -480,3 +508,5 @@ exports.unassignDriver = catchAsyncErrors(async (req, res, next) => {
     message: 'Driver unassigned successfully',
   });
 });
+
+// POST /
