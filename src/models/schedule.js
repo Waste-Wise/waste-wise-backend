@@ -28,6 +28,10 @@ const scheduleSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  assignedDriver: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Driver',
+  },
   schedule_details: [
     {
       monday: [taskSchema],

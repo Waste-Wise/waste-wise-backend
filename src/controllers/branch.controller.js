@@ -204,7 +204,8 @@ exports.getBranchByIdPopulated = catchAsyncErrors(async (req, res, next) => {
   const branch = await Branch.findById(branchId)
     .populate('drivers')
     .populate('vehicles')
-    .populate('routes');
+    .populate('routes')
+    .populate('schedules');
 
   if (!branch) {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
@@ -342,9 +343,9 @@ exports.deleteRouteById = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// POST /:branchId/drivers/:driverId/schedules/create
+// POST /:branchId/schedules/create
 exports.createSchedule = catchAsyncErrors(async (req, res, next) => {
-  const { branchId, driverId } = req.params;
+  const { branchId } = req.params;
   const scheduleObj = req.body;
 
   const branch = await Branch.findById(branchId);
@@ -353,17 +354,13 @@ exports.createSchedule = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
   }
 
-  const driver = await Driver.findById(driverId);
+  let schedule = await Schedule.create(scheduleObj);
 
-  if (!driver) {
-    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
-  }
+  branch.schedules.push(schedule._id);
 
-  const schedule = await Schedule.create(scheduleObj);
+  await branch.save();
 
-  driver.assignedSchedule = schedule._id;
-
-  await driver.save();
+  schedule = await Schedule.findById(schedule._id);
 
   res.status(StatusCodes.CREATED).json({
     success: true,
@@ -372,44 +369,32 @@ exports.createSchedule = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// GET /:branchId/drivers/:driverId/schedule
+// GET /:branchId/schedules/:scheduleId
 exports.getSchedule = catchAsyncErrors(async (req, res, next) => {
-  const { driverId } = req.params;
+  const { scheduleId } = req.params;
 
-  const driver = await Driver.findById(driverId).populate('assignedSchedule');
+  const schedule = await Schedule.findById(scheduleId);
 
-  if (!driver) {
-    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
-  }
-
-  if(!driver.assignedSchedule) {
-    return next(new ErrorHandler('Schedule not assigned', StatusCodes.NOT_FOUND));
+  if (!schedule) {
+    return next(new ErrorHandler('Schedule not found', StatusCodes.NOT_FOUND));
   }
 
   res.status(StatusCodes.ACCEPTED).json({
     success: true,
-    data: driver.assignedSchedule,
+    data: schedule,
   });
 });
 
-// PUT /:branchId/drivers/:driverId/schedule
+// PUT /:branchId/schedules/:scheduleId
 exports.updateSchedule = catchAsyncErrors(async (req, res, next) => {
-  const { driverId } = req.params;
+  const { scheduleId } = req.params;
   const scheduleObj = req.body;
 
-  const driver = await Driver.findById(driverId);
+  const schedule = await Schedule.findById(scheduleId);
 
-  if (!driver) {
-    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+  if (!schedule) {
+    return next(new ErrorHandler('Schedule not found', StatusCodes.NOT_FOUND));
   }
-
-  if (!driver.assignedSchedule) {
-    return next(
-      new ErrorHandler('Schedule not created for driver', StatusCodes.NOT_FOUND)
-    );
-  }
-
-  const schedule = await Schedule.findById(driver.assignedSchedule);
 
   Object.assign(schedule, scheduleObj);
 
@@ -418,5 +403,70 @@ exports.updateSchedule = catchAsyncErrors(async (req, res, next) => {
   res.status(StatusCodes.ACCEPTED).json({
     success: true,
     message: 'Schedule updated successfully',
+    data: schedule,
+  });
+});
+
+// POST /:branchId/schedules/:scheduleId/assign-driver/:driverId
+exports.assignDriver = catchAsyncErrors(async (req, res, next) => {
+  const { branchId, scheduleId, driverId } = req.params;
+
+  const branch = await Branch.findById(branchId).populate('schedules');
+
+  if (!branch) {
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
+  }
+
+  let schedule = branch.schedules.find(
+    (scheduleItem) => scheduleItem.id === scheduleId
+  );
+
+  if (!schedule) {
+    return next(new ErrorHandler('Schedule not found', StatusCodes.NOT_FOUND));
+  }
+
+  if (schedule.assignedDriver) {
+    return next(
+      new ErrorHandler('Schedule is already assigned', StatusCodes.CONFLICT)
+    );
+  }
+
+  const driver = await Driver.findById(driverId);
+
+  if (!driver) {
+    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+  }
+
+  schedule = await Schedule.findById(schedule._id);
+
+  schedule.assignedDriver = driver.id;
+
+  await schedule.save();
+
+  res.status(StatusCodes.ACCEPTED).json({
+    success: true,
+    message: 'Driver assigned successfully',
+  });
+});
+
+// DELETE /:branchId/schedules/:scheduleId/unassign-driver
+exports.unassignDriver = catchAsyncErrors(async (req, res, next) => {
+  const { branchId, scheduleId } = req.params;
+
+  const branch = await Branch.findById(branchId).populate('schedules');
+
+  const schedule = await Schedule.findById(scheduleId);
+
+  if (!schedule.assignedDriver) {
+    return next(new ErrorHandler('Driver not assigned', StatusCodes.CONFLICT));
+  }
+
+  schedule.assignedDriver = undefined;
+
+  await schedule.save();
+
+  res.status(StatusCodes.ACCEPTED).json({
+    success: true,
+    message: 'Driver unassigned successfully',
   });
 });
