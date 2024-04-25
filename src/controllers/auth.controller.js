@@ -86,7 +86,7 @@ exports.driverLogin = catchAsyncErrors(async (req, res, next) => {
 
   if (!user) {
     return next(
-      new ErrorHandler('Invalid email or password', StatusCodes.UNAUTHORIZED)
+      new ErrorHandler('Invalid mobileNumber', StatusCodes.UNAUTHORIZED)
     );
   }
 
