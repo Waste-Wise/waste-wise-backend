@@ -493,11 +493,19 @@ exports.unassignDriver = catchAsyncErrors(async (req, res, next) => {
 
   const branch = await Branch.findById(branchId).populate('schedules');
 
-  const schedule = await Schedule.findById(scheduleId);
+  let schedule = branch.schedules.find(
+    (scheduleItem) => scheduleItem.id === scheduleId
+  );
+
+  if (!schedule) {
+    return next(new ErrorHandler('Schedule not found', StatusCodes.NOT_FOUND));
+  }
 
   if (!schedule.assignedDriver) {
     return next(new ErrorHandler('Driver not assigned', StatusCodes.CONFLICT));
   }
+
+  schedule = await Schedule.findById(scheduleId);
 
   schedule.assignedDriver = undefined;
 
