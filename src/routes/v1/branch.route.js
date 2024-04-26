@@ -18,11 +18,11 @@ const {
   createSchedule,
   getSchedule,
   updateSchedule,
-  assignDriver,
-  unassignDriver,
   toggleDriverStatus,
   toggleVehicleStatus,
   toggleScheduleStatus,
+  assignDriverToSchedule,
+  unassignDriverFromSchedule,
 } = require('../../controllers/branch.controller');
 const {
   isAuthenticated,
@@ -84,11 +84,11 @@ router
 
 router
   .route('/:branchId/schedules/:scheduleId/assign-driver/:driverId')
-  .post(isAuthenticated, isAuthorizedBranch, assignDriver);
+  .post(isAuthenticated, isAuthorizedBranch, assignDriverToSchedule);
 
 router
   .route('/:branchId/schedules/:scheduleId/unassign-driver')
-  .delete(isAuthenticated, isAuthorizedBranch, unassignDriver);
+  .delete(isAuthenticated, isAuthorizedBranch, unassignDriverFromSchedule);
 
 router.route('');
 

@@ -466,7 +466,7 @@ exports.toggleScheduleStatus = catchAsyncErrors(async (req, res, next) => {
 });
 
 // POST /:branchId/schedules/:scheduleId/assign-driver/:driverId
-exports.assignDriver = catchAsyncErrors(async (req, res, next) => {
+exports.assignDriverToSchedule = catchAsyncErrors(async (req, res, next) => {
   const { branchId, scheduleId, driverId } = req.params;
 
   const branch = await Branch.findById(branchId).populate('schedules');
@@ -528,7 +528,7 @@ exports.assignDriver = catchAsyncErrors(async (req, res, next) => {
 });
 
 // DELETE /:branchId/schedules/:scheduleId/unassign-driver
-exports.unassignDriver = catchAsyncErrors(async (req, res, next) => {
+exports.unassignDriverFromSchedule = catchAsyncErrors(async (req, res, next) => {
   const { branchId, scheduleId } = req.params;
 
   const branch = await Branch.findById(branchId).populate('schedules');
