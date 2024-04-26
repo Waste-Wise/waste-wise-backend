@@ -133,7 +133,7 @@ exports.unassignVehicle = catchAsyncErrors(async (req, res, next) => {
     isDriverAssigned: false,
   });
 
-  driver.assignedVehicle = null;
+  driver.assignedVehicle = undefined;
 
   await driver.save();
 
