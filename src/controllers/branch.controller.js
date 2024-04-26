@@ -435,6 +435,36 @@ exports.updateSchedule = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+// PUT /:branchId/schedules/:scheduleId/toggle-status
+exports.toggleScheduleStatus = catchAsyncErrors(async (req, res, next) => {
+  const { branchId, scheduleId } = req.params;
+
+  const branch = await Branch.findById(branchId).populate('schedules');
+
+  if (!branch) {
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
+  }
+
+  let schedule = branch.schedules.find(
+    (scheduleItem) => scheduleItem.id === scheduleId
+  );
+
+  if (!schedule) {
+    return next(new ErrorHandler('Schedule not found', StatusCodes.NOT_FOUND));
+  }
+
+  schedule = await Schedule.findById(scheduleId);
+
+  schedule.status = !schedule.status;
+
+  await schedule.save();
+
+  res.status(StatusCodes.ACCEPTED).json({
+    success: true,
+    message: `Schedule ${schedule.status ? 'enabled' : 'disabled'}`,
+  });
+});
+
 // POST /:branchId/schedules/:scheduleId/assign-driver/:driverId
 exports.assignDriver = catchAsyncErrors(async (req, res, next) => {
   const { branchId, scheduleId, driverId } = req.params;
@@ -529,7 +559,7 @@ exports.toggleVehicleStatus = catchAsyncErrors(async (req, res, next) => {
     (vehicleItem) => vehicleItem.id === vehicleId
   );
 
-  if(!vehicle) {
+  if (!vehicle) {
     return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
   }
 

@@ -22,6 +22,7 @@ const {
   unassignDriver,
   toggleDriverStatus,
   toggleVehicleStatus,
+  toggleScheduleStatus,
 } = require('../../controllers/branch.controller');
 const {
   isAuthenticated,
@@ -76,6 +77,10 @@ router
   .route('/:branchId/schedules/:scheduleId')
   .get(isAuthenticated, isAuthorizedBranch, getSchedule)
   .put(isAuthenticated, isAuthorizedBranch, updateSchedule);
+
+router
+  .route('/:branchId/schedules/:scheduleId/toggle-status')
+  .put(isAuthenticated, isAuthorizedBranch, toggleScheduleStatus);
 
 router
   .route('/:branchId/schedules/:scheduleId/assign-driver/:driverId')
