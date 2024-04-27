@@ -21,6 +21,10 @@ const vehicleSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Position',
       default: null
+    },
+    status: {
+      type: Boolean,
+      default: true
     }
   },
   { timestamps: true }

@@ -256,7 +256,7 @@ exports.toggleDriverStatus = catchAsyncErrors(async (req, res, next) => {
 
   res.status(StatusCodes.ACCEPTED).json({
     success: true,
-    message: `Driver assigned status: ${driver.status}`,
+    message: `Driver ${driver.status ? 'enabled' : 'disabled'}`,
   });
 });
 
@@ -435,8 +435,38 @@ exports.updateSchedule = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
+// PUT /:branchId/schedules/:scheduleId/toggle-status
+exports.toggleScheduleStatus = catchAsyncErrors(async (req, res, next) => {
+  const { branchId, scheduleId } = req.params;
+
+  const branch = await Branch.findById(branchId).populate('schedules');
+
+  if (!branch) {
+    return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
+  }
+
+  let schedule = branch.schedules.find(
+    (scheduleItem) => scheduleItem.id === scheduleId
+  );
+
+  if (!schedule) {
+    return next(new ErrorHandler('Schedule not found', StatusCodes.NOT_FOUND));
+  }
+
+  schedule = await Schedule.findById(scheduleId);
+
+  schedule.status = !schedule.status;
+
+  await schedule.save();
+
+  res.status(StatusCodes.ACCEPTED).json({
+    success: true,
+    message: `Schedule ${schedule.status ? 'enabled' : 'disabled'}`,
+  });
+});
+
 // POST /:branchId/schedules/:scheduleId/assign-driver/:driverId
-exports.assignDriver = catchAsyncErrors(async (req, res, next) => {
+exports.assignDriverToSchedule = catchAsyncErrors(async (req, res, next) => {
   const { branchId, scheduleId, driverId } = req.params;
 
   const branch = await Branch.findById(branchId).populate('schedules');
@@ -459,7 +489,7 @@ exports.assignDriver = catchAsyncErrors(async (req, res, next) => {
     );
   }
 
-  const driver = await Driver.findById(driverId);
+  const driver = await Driver.findById(driverId).populate('assignedVehicle');
 
   if (!driver) {
     return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
@@ -470,8 +500,18 @@ exports.assignDriver = catchAsyncErrors(async (req, res, next) => {
   }
 
   if (!driver.isVerified) {
+    return next(new ErrorHandler('Driver not verified', StatusCodes.CONFLICT));
+  }
+
+  if (!driver.assignedVehicle) {
     return next(
-      new ErrorHandler('Driver not verified', StatusCodes.UNAUTHORIZED)
+      new ErrorHandler('Driver has no vehicle assigned', StatusCodes.CONFLICT)
+    );
+  }
+
+  if (!driver.assignedVehicle.status) {
+    return next(
+      new ErrorHandler('Assigned vehicle is disabled', StatusCodes.CONFLICT)
     );
   }
 
@@ -488,7 +528,7 @@ exports.assignDriver = catchAsyncErrors(async (req, res, next) => {
 });
 
 // DELETE /:branchId/schedules/:scheduleId/unassign-driver
-exports.unassignDriver = catchAsyncErrors(async (req, res, next) => {
+exports.unassignDriverFromSchedule = catchAsyncErrors(async (req, res, next) => {
   const { branchId, scheduleId } = req.params;
 
   const branch = await Branch.findById(branchId).populate('schedules');
@@ -509,4 +549,28 @@ exports.unassignDriver = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// POST /
+// PUT /:branchId/vehicles/:vehicleId/toggle-status
+exports.toggleVehicleStatus = catchAsyncErrors(async (req, res, next) => {
+  const { branchId, vehicleId } = req.params;
+
+  const branch = await Branch.findById(branchId).populate('vehicles');
+
+  let vehicle = branch.vehicles.find(
+    (vehicleItem) => vehicleItem.id === vehicleId
+  );
+
+  if (!vehicle) {
+    return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
+  }
+
+  vehicle = await Vehicle.findById(vehicleId);
+
+  vehicle.status = !vehicle.status;
+
+  await vehicle.save();
+
+  res.status(StatusCodes.ACCEPTED).json({
+    success: true,
+    message: `Vehicle ${vehicle.status ? 'enabled' : 'disabled'}`,
+  });
+});

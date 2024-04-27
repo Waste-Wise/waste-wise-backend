@@ -43,6 +43,10 @@ const scheduleSchema = new mongoose.Schema({
       sunday: [taskSchema],
     },
   ],
+  status: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 module.exports = mongoose.model('Schedule', scheduleSchema);
