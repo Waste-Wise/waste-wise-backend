@@ -1,10 +1,10 @@
 const express = require('express');
 const {
-  refreshAuth,
-  branchLogin,
-  driverLogin,
-  resetPasswordDriver,
-  resetPasswordRequestDriver,
+	refreshAuth,
+	branchLogin,
+	driverLogin,
+	resetPasswordDriver,
+	resetPasswordRequestDriver,
 } = require('../../controllers/auth.controller');
 
 const router = express.Router();

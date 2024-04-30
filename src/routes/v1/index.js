@@ -7,26 +7,26 @@ const authRouter = require('./auth.route');
 const router = express.Router();
 
 const routes = [
-  {
-    path: '/auth',
-    route: authRouter,
-  },
-  {
-    path: '/drivers',
-    route: driverRouter,
-  },
-  {
-    path: '/branches',
-    route: branchRouter,
-  },
-  {
-    path: '/vehicles',
-    route: vehicleRouter,
-  },
+	{
+		path: '/auth',
+		route: authRouter,
+	},
+	{
+		path: '/drivers',
+		route: driverRouter,
+	},
+	{
+		path: '/branches',
+		route: branchRouter,
+	},
+	{
+		path: '/vehicles',
+		route: vehicleRouter,
+	},
 ];
 
 routes.forEach((route) => {
-  router.use(route.path, route.route);
+	router.use(route.path, route.route);
 });
 
 module.exports = router;
