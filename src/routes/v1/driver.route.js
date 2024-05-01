@@ -7,6 +7,7 @@ const {
 	assignVehicleToDriver,
 	unassignVehicle,
 	testController,
+	setTransactionStatus,
 } = require('../../controllers/driver.controller');
 const { isAuthenticated, isVerifiedDriver } = require('../../middleware/auth');
 
@@ -22,5 +23,7 @@ router
 	.delete(deleteDriverById);
 router.route('/:driverId/assign-vehicle/:vehicleId').put(assignVehicleToDriver);
 router.route('/:id/unassign-vehicle').delete(unassignVehicle);
+
+router.route('/:driverId/transactions').put(setTransactionStatus);
 
 module.exports = router;
