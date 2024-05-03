@@ -154,7 +154,13 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 	}
 
 	if (assignedSchedule) {
-		const schedule = await Schedule.create(assignedSchedule);
+		const schedule = await Schedule.findById(assignedSchedule);
+
+		if (!schedule) {
+			return next(
+				new ErrorHandler('Schedule not found!'.StatusCodes.NOT_FOUND)
+			);
+		}
 
 		driver.assignedSchedule = schedule.id;
 	}
