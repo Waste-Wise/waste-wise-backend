@@ -3,6 +3,8 @@ const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const ErrorHandler = require('../utils/ErrorHandler');
 const Driver = require('../models/driver');
 const Vehicle = require('../models/vehicle');
+const transactionStatus = require('../../config/constants');
+const Transaction = require('../models/transaction');
 
 // GET /
 exports.getAllDrivers = catchAsyncErrors(async (req, res) =>
@@ -150,5 +152,48 @@ exports.testController = catchAsyncErrors(async (req, res, next) => {
 	res.status(StatusCodes.OK).json({
 		success: true,
 		message: 'Driver is verified',
+	});
+});
+
+// PUT /:driverId/transactions/?taskId=TA123
+exports.setTransactionStatus = catchAsyncErrors(async (req, res, next) => {
+	const { taskId } = req.query;
+	const { status } = req.body;
+
+	/**
+	 * Filter by date as well!
+	 */
+	const transaction = await Transaction.findOne({ taskId });
+
+	if (!transaction) {
+		return next(
+			new ErrorHandler('Invalid transaction id', StatusCodes.BAD_REQUEST)
+		);
+	}
+
+	if (status === transaction.status) {
+		return next(
+			new ErrorHandler('Already in the given state', StatusCodes.BAD_REQUEST)
+		);
+	}
+
+	switch (status) {
+		case transactionStatus.ONGOING:
+		case transactionStatus.ABORTED:
+		case transactionStatus.COMPLETE:
+			transaction.status = status;
+			break;
+		default:
+			return next(
+				new ErrorHandler('Invalid transaction status', StatusCodes.BAD_REQUEST)
+			);
+	}
+
+	await transaction.save();
+
+	return res.json(StatusCodes.ACCEPTED).json({
+		success: true,
+		message: `Transaction status changed to ${status} changed to ${transaction.status}`,
+		data: transaction,
 	});
 });

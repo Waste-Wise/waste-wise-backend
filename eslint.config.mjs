@@ -27,5 +27,8 @@ export default [
 			'no-plusplus': 'off',
 			'no-unused-vars': ['error', { argsIgnorePattern: 'next' }],
 		},
+		languageOptions: {
+			ecmaVersion: 2023,
+		},
 	},
 ];

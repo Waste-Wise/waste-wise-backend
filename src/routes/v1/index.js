@@ -3,6 +3,7 @@ const driverRouter = require('./driver.route');
 const branchRouter = require('./branch.route');
 const vehicleRouter = require('./vehicle.route');
 const authRouter = require('./auth.route');
+const transactionRouter = require('./transaction.route');
 
 const router = express.Router();
 
@@ -22,6 +23,10 @@ const routes = [
 	{
 		path: '/vehicles',
 		route: vehicleRouter,
+	},
+	{
+		path: '/transactions',
+		route: transactionRouter,
 	},
 ];
 

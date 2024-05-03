@@ -23,6 +23,7 @@ const {
 	toggleScheduleStatus,
 	assignDriverToSchedule,
 	unassignDriverFromSchedule,
+	createTransaction,
 } = require('../../controllers/branch.controller');
 const {
 	isAuthenticated,
@@ -90,6 +91,6 @@ router
 	.route('/:branchId/schedules/:scheduleId/unassign-driver')
 	.delete(isAuthenticated, isAuthorizedBranch, unassignDriverFromSchedule);
 
-router.route('');
+router.route('/:branchId/transactions/create').post(createTransaction);
 
 module.exports = router;

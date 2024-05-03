@@ -7,6 +7,7 @@ const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const Route = require('../models/route');
 const Schedule = require('../models/schedule');
+const Transaction = require('../models/transaction');
 
 // POST /create
 exports.createBranch = catchAsyncErrors(async (req, res) => {
@@ -596,5 +597,39 @@ exports.toggleVehicleStatus = catchAsyncErrors(async (req, res, next) => {
 	return res.status(StatusCodes.ACCEPTED).json({
 		success: true,
 		message: `Vehicle ${vehicle.status ? 'enabled' : 'disabled'}`,
+	});
+});
+
+// POST /:branchId/transactions/create
+exports.createTransaction = catchAsyncErrors(async (req, res, next) => {
+	const { branchId } = req.params;
+	const { taskId, driverId, scheduleId } = req.body;
+
+	const branch = await Branch.findById(branchId).populate('schedules');
+
+	if (!branch) {
+		return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
+	}
+
+	const assignedDriver = branch.schedules
+		.find((schedule) => schedule.id === scheduleId)
+		?.assignedDriver?.toString();
+
+	if (assignedDriver && !(assignedDriver === driverId)) {
+		return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+	}
+
+	const transactionObj = {
+		taskId: new mongoose.Types.ObjectId(taskId),
+		driverId: new mongoose.Types.ObjectId(driverId),
+		date: Date.now(),
+	};
+
+	const transaction = await Transaction.create(transactionObj);
+
+	return res.status(StatusCodes.CREATED).json({
+		success: true,
+		message: 'Transaction created successfully.',
+		data: transaction,
 	});
 });
