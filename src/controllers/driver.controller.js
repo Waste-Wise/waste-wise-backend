@@ -179,9 +179,15 @@ exports.setTransactionStatus = catchAsyncErrors(async (req, res, next) => {
 
 	switch (status) {
 		case transactionStatus.ONGOING:
+			transaction.realStartTime = Date.now();
+			transaction.realEndTime = undefined;
+			break;
 		case transactionStatus.ABORTED:
+			transaction.realStartTime = undefined;
+			transaction.realEndTime = undefined;
+			break;
 		case transactionStatus.COMPLETE:
-			transaction.status = status;
+			transaction.realEndTime = Date.now();
 			break;
 		default:
 			return next(
@@ -189,11 +195,13 @@ exports.setTransactionStatus = catchAsyncErrors(async (req, res, next) => {
 			);
 	}
 
+	transaction.status = status;
+
 	await transaction.save();
 
 	return res.json(StatusCodes.ACCEPTED).json({
 		success: true,
-		message: `Transaction status changed to ${status} changed to ${transaction.status}`,
+		message: `Transaction status changed to ${transaction.status}`,
 		data: transaction,
 	});
 });
