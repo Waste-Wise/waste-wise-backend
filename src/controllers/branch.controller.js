@@ -103,7 +103,7 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 		mobileNumber,
 		password,
 		avatar,
-		assignedRoute,
+		scheduleId,
 		assignedVehicle,
 	} = req.body;
 
@@ -125,10 +125,9 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 	if (avatar) {
 		driverObj.avatar = avatar;
 	}
-
-	if (assignedRoute) {
-		driverObj.assignedRoute = assignedRoute;
-	}
+	/*
+    schedule creation logic
+  */
 
 	let driver = await Driver.create(driverObj);
 
@@ -152,9 +151,15 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 		await vehicle.save();
 
 		driver.assignedVehicle = vehicleObjId;
-
-		await driver.save();
 	}
+
+	if (scheduleId) {
+		const schedule = await Schedule.create(scheduleId);
+
+		driver.assignedSchedule = schedule.id;
+	}
+
+	await driver.save();
 
 	/* eslint-disable no-underscore-dangle */
 	branch.drivers.push(driver._id);
@@ -221,6 +226,28 @@ exports.getBranchByIdPopulated = catchAsyncErrors(async (req, res, next) => {
 	});
 });
 
+const getDriversPopulatedVehicles = async (branch) => {
+	const drivers = [];
+
+	for (let i = 0; i < branch.drivers.length; i++) {
+		/* eslint-disable no-await-in-loop */
+		const driver = await Driver.findById(branch.drivers[i].id).populate(
+			'assignedVehicle'
+		);
+		/* eslint-enable no-await-in-loop */
+
+		console.log(driver);
+
+		if (!driver) {
+			break;
+		}
+
+		drivers.push(driver);
+	}
+
+	return drivers;
+};
+
 // GET /:branchId/drivers
 exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
 	const { branchId } = req.params;
@@ -231,9 +258,17 @@ exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
 		return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
 	}
 
+	if (!branch.drivers) {
+		return next(
+			new ErrorHandler('No dirvers for branch', StatusCodes.NOT_FOUND)
+		);
+	}
+
+	const drivers = await getDriversPopulatedVehicles(branch);
+
 	return res.status(StatusCodes.OK).json({
 		success: true,
-		data: branch.drivers,
+		data: drivers,
 	});
 });
 
@@ -619,10 +654,14 @@ exports.createTransaction = catchAsyncErrors(async (req, res, next) => {
 		return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
 	}
 
+	/**
+	 * replace this code with createTransaction()
+	 */
 	const transactionObj = {
 		taskId: new mongoose.Types.ObjectId(taskId),
 		driverId: new mongoose.Types.ObjectId(driverId),
 		date: Date.now(),
+		branchId,
 	};
 
 	const transaction = await Transaction.create(transactionObj);
@@ -633,3 +672,18 @@ exports.createTransaction = catchAsyncErrors(async (req, res, next) => {
 		data: transaction,
 	});
 });
+
+// GET /:brachId/schedules
+exports.getSchedulesByBranch = catchAsyncErrors(async (req, res, next) => {
+	const { branchId } = req.params;
+
+	const branch = await Branch.findById(branchId);
+
+	return res.status(StatusCodes.OK).json({
+		sccess: true,
+		data: branch.schedules,
+	});
+});
+
+// GET /:branchId/transactions?date=2024-05-03
+exports.getCurrentTransactions = catchAsyncErrors(async (req, res, next) => {});

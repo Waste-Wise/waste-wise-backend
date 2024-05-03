@@ -20,7 +20,7 @@ exports.getAllDrivers = catchAsyncErrors(async (req, res) =>
 exports.getDriverById = catchAsyncErrors(async (req, res, next) => {
 	const { id } = req.params;
 
-	const driver = await Driver.findById(id);
+	const driver = await Driver.findById(id).populate('assignedVehicle');
 
 	if (!driver) {
 		return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
@@ -160,14 +160,21 @@ exports.setTransactionStatus = catchAsyncErrors(async (req, res, next) => {
 	const { taskId } = req.query;
 	const { status } = req.body;
 
+	const today = undefined;
 	/**
-	 * Filter by date as well!
+	 * Filter by date as well!: transaction.createdAt attrib
+	 *
 	 */
-	const transaction = await Transaction.findOne({ taskId });
+
+	const transaction = await Transaction.findOne({ taskId, today });
 
 	if (!transaction) {
+		return next(new ErrorHandler('Invalid task id', StatusCodes.BAD_REQUEST));
+	}
+
+	if (transaction.status === transactionStatus.DISABLED) {
 		return next(
-			new ErrorHandler('Invalid transaction id', StatusCodes.BAD_REQUEST)
+			new ErrorHandler('Transaction is disabled', StatusCodes.FORBIDDEN)
 		);
 	}
 
@@ -179,9 +186,15 @@ exports.setTransactionStatus = catchAsyncErrors(async (req, res, next) => {
 
 	switch (status) {
 		case transactionStatus.ONGOING:
+			transaction.realStartTime = Date.now();
+			transaction.realEndTime = undefined;
+			break;
 		case transactionStatus.ABORTED:
+			transaction.realStartTime = undefined;
+			transaction.realEndTime = undefined;
+			break;
 		case transactionStatus.COMPLETE:
-			transaction.status = status;
+			transaction.realEndTime = Date.now();
 			break;
 		default:
 			return next(
@@ -189,11 +202,13 @@ exports.setTransactionStatus = catchAsyncErrors(async (req, res, next) => {
 			);
 	}
 
+	transaction.status = status;
+
 	await transaction.save();
 
-	return res.json(StatusCodes.ACCEPTED).json({
+	return res.status(StatusCodes.ACCEPTED).json({
 		success: true,
-		message: `Transaction status changed to ${status} changed to ${transaction.status}`,
+		message: `Transaction status changed to ${status}`,
 		data: transaction,
 	});
 });
