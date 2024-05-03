@@ -20,7 +20,7 @@ exports.getAllDrivers = catchAsyncErrors(async (req, res) =>
 exports.getDriverById = catchAsyncErrors(async (req, res, next) => {
 	const { id } = req.params;
 
-	const driver = await Driver.findById(id);
+	const driver = await Driver.findById(id).populate('assignedVehicle');
 
 	if (!driver) {
 		return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
