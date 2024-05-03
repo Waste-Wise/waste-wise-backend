@@ -619,10 +619,14 @@ exports.createTransaction = catchAsyncErrors(async (req, res, next) => {
 		return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
 	}
 
+	/**
+	 * replace this code with createTransaction()
+	 */
 	const transactionObj = {
 		taskId: new mongoose.Types.ObjectId(taskId),
 		driverId: new mongoose.Types.ObjectId(driverId),
 		date: Date.now(),
+		branchId,
 	};
 
 	const transaction = await Transaction.create(transactionObj);
@@ -633,3 +637,6 @@ exports.createTransaction = catchAsyncErrors(async (req, res, next) => {
 		data: transaction,
 	});
 });
+
+// GET /:branchId/transactions?date=2024-05-03
+exports.getCurrentTransactions = catchAsyncErrors(async (req, res, next) => {});

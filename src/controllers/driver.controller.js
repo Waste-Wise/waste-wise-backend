@@ -160,14 +160,21 @@ exports.setTransactionStatus = catchAsyncErrors(async (req, res, next) => {
 	const { taskId } = req.query;
 	const { status } = req.body;
 
+	const today = undefined;
 	/**
-	 * Filter by date as well!
+	 * Filter by date as well!: transaction.createdAt attrib
+	 *
 	 */
-	const transaction = await Transaction.findOne({ taskId });
+
+	const transaction = await Transaction.findOne({ taskId, today });
 
 	if (!transaction) {
+		return next(new ErrorHandler('Invalid task id', StatusCodes.BAD_REQUEST));
+	}
+
+	if (transaction.status === transactionStatus.DISABLED) {
 		return next(
-			new ErrorHandler('Invalid transaction id', StatusCodes.BAD_REQUEST)
+			new ErrorHandler('Transaction is disabled', StatusCodes.FORBIDDEN)
 		);
 	}
 
@@ -199,9 +206,9 @@ exports.setTransactionStatus = catchAsyncErrors(async (req, res, next) => {
 
 	await transaction.save();
 
-	return res.json(StatusCodes.ACCEPTED).json({
+	return res.status(StatusCodes.ACCEPTED).json({
 		success: true,
-		message: `Transaction status changed to ${transaction.status}`,
+		message: `Transaction status changed to ${status}`,
 		data: transaction,
 	});
 });

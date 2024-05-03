@@ -92,5 +92,6 @@ router
 	.delete(isAuthenticated, isAuthorizedBranch, unassignDriverFromSchedule);
 
 router.route('/:branchId/transactions/create').post(createTransaction);
+router.route('/:branchId/transactions').get(createTransaction);
 
 module.exports = router;
