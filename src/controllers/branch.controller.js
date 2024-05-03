@@ -677,7 +677,9 @@ exports.createTransaction = catchAsyncErrors(async (req, res, next) => {
 exports.getSchedulesByBranch = catchAsyncErrors(async (req, res, next) => {
 	const { branchId } = req.params;
 
-	const branch = await Branch.findById(branchId);
+	const branch = await Branch.findById(branchId).populate('schedules');
+
+	console.log(branch);
 
 	return res.status(StatusCodes.OK).json({
 		sccess: true,
