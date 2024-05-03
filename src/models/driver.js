@@ -28,12 +28,10 @@ const driverSchema = new mongoose.Schema(
 			required: [true, 'Mobile Number is required'],
 			unique: true,
 		},
-		assignedVehicle: [
-			{
-				type: mongoose.Schema.Types.ObjectId,
-				ref: 'Vehicle',
-			},
-		],
+		assignedVehicle: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Vehicle',
+		},
 		role: {
 			type: String,
 			default: roles.DRIVER_ROLE,

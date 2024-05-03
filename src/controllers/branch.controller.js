@@ -103,7 +103,7 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 		mobileNumber,
 		password,
 		avatar,
-		sheduleToAssign,
+		scheduleId,
 		assignedVehicle,
 	} = req.body;
 
@@ -153,8 +153,8 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 		driver.assignedVehicle = vehicleObjId;
 	}
 
-	if (sheduleToAssign) {
-		const schedule = await Schedule.create(sheduleToAssign);
+	if (scheduleId) {
+		const schedule = await Schedule.create(scheduleId);
 
 		driver.assignedSchedule = schedule.id;
 	}
@@ -226,6 +226,28 @@ exports.getBranchByIdPopulated = catchAsyncErrors(async (req, res, next) => {
 	});
 });
 
+const getDriversPopulatedVehicles = async (branch) => {
+	const drivers = [];
+
+	for (let i = 0; i < branch.drivers.length; i++) {
+		/* eslint-disable no-await-in-loop */
+		const driver = await Driver.findById(branch.drivers[i].id).populate(
+			'assignedVehicle'
+		);
+		/* eslint-enable no-await-in-loop */
+
+		console.log(driver);
+
+		if (!driver) {
+			break;
+		}
+
+		drivers.push(driver);
+	}
+
+	return drivers;
+};
+
 // GET /:branchId/drivers
 exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
 	const { branchId } = req.params;
@@ -236,9 +258,17 @@ exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
 		return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
 	}
 
+	if (!branch.drivers) {
+		return next(
+			new ErrorHandler('No dirvers for branch', StatusCodes.NOT_FOUND)
+		);
+	}
+
+	const drivers = await getDriversPopulatedVehicles(branch);
+
 	return res.status(StatusCodes.OK).json({
 		success: true,
-		data: branch.drivers,
+		data: drivers,
 	});
 });
 
@@ -647,11 +677,7 @@ exports.createTransaction = catchAsyncErrors(async (req, res, next) => {
 exports.getSchedulesByBranch = catchAsyncErrors(async (req, res, next) => {
 	const { branchId } = req.params;
 
-	console.log('sdfsdfds');
-
 	const branch = await Branch.findById(branchId);
-
-	console.log(branch.schedules);
 
 	return res.status(StatusCodes.OK).json({
 		sccess: true,
