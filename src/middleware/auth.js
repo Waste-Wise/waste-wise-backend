@@ -28,7 +28,7 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
 	try {
 		decoded = jwt.verify(token, process.env.JWT_SECRET);
 	} catch (err) {
-		return next(new ErrorHandler('Invalid token', StatusCodes.FORBIDDEN));
+		return next(new ErrorHandler(err, StatusCodes.FORBIDDEN));
 	}
 
 	req.user = decoded;

@@ -153,6 +153,9 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 		driver.assignedVehicle = vehicleObjId;
 	}
 
+	await driver.save();
+
+	/* eslint-disable */
 	if (assignedSchedule) {
 		const schedule = await Schedule.findById(assignedSchedule);
 
@@ -162,10 +165,16 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 			);
 		}
 
-		driver.assignedSchedule = schedule.id;
-	}
+		if (schedule.assignedDriver) {
+			return next(
+				new ErrorHandler('Schedule not already assigned!'.StatusCodes.CONFLICT)
+			);
+		}
 
-	await driver.save();
+		schedule.assignedDriver = driver.id;
+		await schedule.save();
+	}
+	/* eslint-enable */
 
 	/* eslint-disable no-underscore-dangle */
 	branch.drivers.push(driver._id);
