@@ -103,7 +103,7 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 		mobileNumber,
 		password,
 		avatar,
-		scheduleId,
+		assignedSchedule,
 		assignedVehicle,
 	} = req.body;
 
@@ -153,8 +153,8 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 		driver.assignedVehicle = vehicleObjId;
 	}
 
-	if (scheduleId) {
-		const schedule = await Schedule.create(scheduleId);
+	if (assignedSchedule) {
+		const schedule = await Schedule.create(assignedSchedule);
 
 		driver.assignedSchedule = schedule.id;
 	}
