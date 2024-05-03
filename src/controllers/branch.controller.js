@@ -103,7 +103,7 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 		mobileNumber,
 		password,
 		avatar,
-		assignedRoute,
+		sheduleToAssign,
 		assignedVehicle,
 	} = req.body;
 
@@ -125,10 +125,9 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 	if (avatar) {
 		driverObj.avatar = avatar;
 	}
-
-	if (assignedRoute) {
-		driverObj.assignedRoute = assignedRoute;
-	}
+	/*
+    schedule creation logic
+  */
 
 	let driver = await Driver.create(driverObj);
 
@@ -152,9 +151,15 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 		await vehicle.save();
 
 		driver.assignedVehicle = vehicleObjId;
-
-		await driver.save();
 	}
+
+	if (sheduleToAssign) {
+		const schedule = await Schedule.create(sheduleToAssign);
+
+		driver.assignedSchedule = schedule.id;
+	}
+
+	await driver.save();
 
 	/* eslint-disable no-underscore-dangle */
 	branch.drivers.push(driver._id);
@@ -619,10 +624,14 @@ exports.createTransaction = catchAsyncErrors(async (req, res, next) => {
 		return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
 	}
 
+	/**
+	 * replace this code with createTransaction()
+	 */
 	const transactionObj = {
 		taskId: new mongoose.Types.ObjectId(taskId),
 		driverId: new mongoose.Types.ObjectId(driverId),
 		date: Date.now(),
+		branchId,
 	};
 
 	const transaction = await Transaction.create(transactionObj);
@@ -633,3 +642,22 @@ exports.createTransaction = catchAsyncErrors(async (req, res, next) => {
 		data: transaction,
 	});
 });
+
+// GET /:brachId/schedules
+exports.getSchedulesByBranch = catchAsyncErrors(async (req, res, next) => {
+	const { branchId } = req.params;
+
+	console.log('sdfsdfds');
+
+	const branch = await Branch.findById(branchId);
+
+	console.log(branch.schedules);
+
+	return res.status(StatusCodes.OK).json({
+		sccess: true,
+		data: branch.schedules,
+	});
+});
+
+// GET /:branchId/transactions?date=2024-05-03
+exports.getCurrentTransactions = catchAsyncErrors(async (req, res, next) => {});

@@ -26,6 +26,7 @@ export default [
 			'no-console': 'off',
 			'no-plusplus': 'off',
 			'no-unused-vars': ['error', { argsIgnorePattern: 'next' }],
+      'no-unused-vars': 'off',
 		},
 		languageOptions: {
 			ecmaVersion: 2023,
