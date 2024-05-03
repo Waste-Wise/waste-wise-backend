@@ -14,9 +14,9 @@ const passwordsMatched = (password, confirmationPassword) =>
 
 // POST /login
 exports.branchLogin = catchAsyncErrors(async (req, res, next) => {
-	const { mobileNumber, password } = req.body;
+	const { email, password } = req.body;
 
-	const user = await Branch.findOne({ mobileNumber }).select('+password');
+	const user = await Branch.findOne({ email }).select('+password');
 
 	if (!user) {
 		return next(
