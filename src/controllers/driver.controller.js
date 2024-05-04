@@ -5,6 +5,7 @@ const Driver = require('../models/driver');
 const Vehicle = require('../models/vehicle');
 const transactionStatus = require('../../config/constants');
 const Transaction = require('../models/transaction');
+const Route = require('../models/route');
 
 // GET /
 exports.getAllDrivers = catchAsyncErrors(async (req, res) =>
@@ -210,5 +211,14 @@ exports.setTransactionStatus = catchAsyncErrors(async (req, res, next) => {
 		success: true,
 		message: `Transaction status changed to ${status}`,
 		data: transaction,
+	});
+});
+
+exports.getAllRoutes = catchAsyncErrors(async (req, res, next) => {
+	const routes = await Route.find();
+
+	res.status(StatusCodes.CREATED).json({
+		success: true,
+		data: routes,
 	});
 });
