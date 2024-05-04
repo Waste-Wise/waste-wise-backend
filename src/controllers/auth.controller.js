@@ -126,6 +126,9 @@ exports.driverLogin = catchAsyncErrors(async (req, res, next) => {
 		success: true,
 		token,
 		refresh_token: refreshToken,
+		decoded_token: JSON.parse(
+			Buffer.from(token.split('.')[1], 'base64').toString()
+		),
 	});
 	/* eslint-enable camelcase */
 });

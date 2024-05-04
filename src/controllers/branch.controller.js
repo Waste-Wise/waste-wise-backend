@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 const { StatusCodes } = require('http-status-codes');
 const mongoose = require('mongoose');
 const Branch = require('../models/branch');
@@ -8,6 +10,7 @@ const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const Route = require('../models/route');
 const Schedule = require('../models/schedule');
 const Transaction = require('../models/transaction');
+const driver = require('../models/driver');
 
 // POST /create
 exports.createBranch = catchAsyncErrors(async (req, res) => {
@@ -267,23 +270,40 @@ const getDriversPopulatedVehicles = async (branch) => {
 exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
 	const { branchId } = req.params;
 
-	const branch = await Branch.findById(branchId).populate('drivers');
+	const branch = await Branch.findById(branchId)
+		.populate('schedules')
+		.populate({
+			path: 'schedules',
+			populate: {
+				path: 'assignedDriver',
+				model: 'Driver',
+				populate: {
+					path: 'assignedVehicle',
+					model: 'Vehicle',
+				},
+			},
+		});
 
 	if (!branch) {
 		return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
 	}
 
-	if (!branch.drivers) {
-		return next(
-			new ErrorHandler('No dirvers for branch', StatusCodes.NOT_FOUND)
-		);
-	}
-
 	const drivers = await getDriversPopulatedVehicles(branch);
+
+	branch.schedules.forEach((schedule) => {
+		schedule.assignedDriver;
+		// drivers.push(driverObj);
+	});
+
+	// await Branch.findById(branchId).populate('schedules ').schedules.forEach(schedule => {
+	//   const driverObj = {};
+
+	//   schedule.assignedDriver
+	// })
 
 	return res.status(StatusCodes.OK).json({
 		success: true,
-		data: drivers,
+		data: branch,
 	});
 });
 
@@ -704,3 +724,5 @@ exports.getSchedulesByBranch = catchAsyncErrors(async (req, res, next) => {
 
 // GET /:branchId/transactions?date=2024-05-03
 exports.getCurrentTransactions = catchAsyncErrors(async (req, res, next) => {});
+
+/* eslint-enable */
