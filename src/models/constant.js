@@ -2,7 +2,11 @@ const mongoose = require('mongoose');
 
 const constantSchema = new mongoose.Schema(
 	{
-		maxRouteCount: {
+		name: {
+			type: String,
+			required: true,
+		},
+		value: {
 			type: Number,
 			default: 0,
 		},
