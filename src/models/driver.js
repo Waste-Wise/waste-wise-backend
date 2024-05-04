@@ -71,6 +71,7 @@ driverSchema.methods.getJwt = function getJwt() {
 			name: this.name,
 			email: this.email,
 			isVerified: this.isVerified,
+			assignedVehicle: this.assignedVehicle,
 		},
 		process.env.JWT_SECRET,
 		{
