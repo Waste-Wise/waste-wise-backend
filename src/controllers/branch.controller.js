@@ -374,6 +374,22 @@ exports.createRoute = catchAsyncErrors(async (req, res) => {
 	});
 });
 
+// /routes
+exports.getRoutes = catchAsyncErrors(async (req, res, next) => {
+	const { branchId } = req.params;
+
+	const branch = await Branch.findById(branchId).populate('routes');
+
+	if (!branch) {
+		return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
+	}
+
+	return res.status(StatusCodes.OK).json({
+		success: true,
+		data: branch.routes,
+	});
+});
+
 // GET /:branchId/routes
 exports.getAllRoutes = catchAsyncErrors(async (req, res, next) => {
 	const { branchId } = req.params;

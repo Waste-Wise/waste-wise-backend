@@ -10,13 +10,16 @@ const {
 	setTransactionStatus,
 } = require('../../controllers/driver.controller');
 const { isAuthenticated, isVerifiedDriver } = require('../../middleware/auth');
-const { getAllRoutes } = require('../../controllers/branch.controller');
+const {
+	getAllRoutes,
+	getRoutes,
+} = require('../../controllers/branch.controller');
 
 const router = express.Router();
 
 router.route('/').get(getAllDrivers);
 router.route('/test').get(isAuthenticated, isVerifiedDriver, testController);
-router.route('/routes').get(getAllRoutes);
+router.route('/routes').get(getRoutes);
 
 router
 	.route('/:id')
