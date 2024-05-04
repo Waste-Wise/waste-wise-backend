@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* eslint-enable */
 
 const { StatusCodes } = require('http-status-codes');
 const mongoose = require('mongoose');
@@ -10,6 +10,8 @@ const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const Route = require('../models/route');
 const Schedule = require('../models/schedule');
 const Transaction = require('../models/transaction');
+const Constant = require('../models/constant');
+const route = require('../models/route');
 
 // POST /create
 exports.createBranch = catchAsyncErrors(async (req, res) => {
@@ -253,8 +255,6 @@ const getDriversPopulatedVehicles = async (branch) => {
 		);
 		/* eslint-enable no-await-in-loop */
 
-		console.log(driver);
-
 		if (!driver) {
 			break;
 		}
@@ -290,7 +290,7 @@ exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
 
 	return res.status(StatusCodes.OK).json({
 		success: true,
-		data: branch,
+		data: drivers,
 	});
 });
 
@@ -346,6 +346,20 @@ exports.createRoute = catchAsyncErrors(async (req, res) => {
 
 	const routeObj = req.body;
 
+	const routesCount = await Constant.findOne('maxRouteCount');
+
+	if (!routesCount) {
+		routesCount = 0;
+	}
+
+	console.log(routesCount);
+
+	Object.assign(routeObj, { route_id: routesCount });
+
+	routesCount++;
+
+	await routesCount.save();
+
 	const route = await Route.create(routeObj);
 
 	/* eslint-disable no-underscore-dangle */
@@ -358,6 +372,16 @@ exports.createRoute = catchAsyncErrors(async (req, res) => {
 		success: true,
 		message: 'Route created successfully',
 		data: route,
+	});
+});
+
+// /routes
+exports.getRoutes = catchAsyncErrors(async (req, res, next) => {
+	const routes = await Route.find();
+
+	return res.status(StatusCodes.OK).json({
+		success: true,
+		data: routes,
 	});
 });
 

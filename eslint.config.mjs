@@ -28,7 +28,8 @@ export default [
 			'no-unused-vars': ['error', { argsIgnorePattern: 'next' }],
       'no-unused-vars': 'off',
       'no-shadow': 'off',
-      'no-unused-expressions': 'off'
+      'no-unused-expressions': 'off',
+      'no-const-assign': 'off'
 
 		},
 		languageOptions: {
