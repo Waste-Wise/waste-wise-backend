@@ -161,7 +161,8 @@ exports.createDriverForBranch = catchAsyncErrors(async (req, res, next) => {
 
 	/* eslint-disable */
 	if (assignedSchedule) {
-		const schedule = await Schedule.findById(assignedSchedule);
+		const schedule =
+			await Schedule.findById(assignedSchedule).populate('assignedDriver');
 
 		if (!schedule) {
 			return next(
@@ -358,7 +359,7 @@ exports.createRoute = catchAsyncErrors(async (req, res) => {
 		await maxRouteCount.save();
 	}
 
-	Object.assign(routeObj, { route_id: `ROUTE-${  maxRouteCount.value}` });
+	Object.assign(routeObj, { route_id: `ROUTE-${maxRouteCount.value}` });
 
 	const route = await Route.create(routeObj);
 
