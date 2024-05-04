@@ -29,8 +29,10 @@ export default [
       'no-unused-vars': 'off',
       'no-shadow': 'off',
       'no-unused-expressions': 'off',
-      'no-const-assign': 'off'
-
+      'no-const-assign': 'off',
+      'no-empty-pattern': 'off',
+      'import/no-unresolved': 'off',
+      'no-undef': 'off'
 		},
 		languageOptions: {
 			ecmaVersion: 2023,

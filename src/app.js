@@ -11,6 +11,8 @@ app.use(cors());
 app.use(helmet());
 app.use(bodyParser.json({ limit: '50mb' }));
 
+// app.use('/constants', );
+
 app.use('/api/v1', routes);
 app.use('/', (req, res) => {
 	res.send('Welcome to Waste Wise API');
