@@ -11,6 +11,7 @@ const Route = require('../models/route');
 const Schedule = require('../models/schedule');
 const Transaction = require('../models/transaction');
 const Constant = require('../models/constant');
+const route = require('../models/route');
 
 // POST /create
 exports.createBranch = catchAsyncErrors(async (req, res) => {
@@ -376,17 +377,11 @@ exports.createRoute = catchAsyncErrors(async (req, res) => {
 
 // /routes
 exports.getRoutes = catchAsyncErrors(async (req, res, next) => {
-	const { branchId } = req.params;
-
-	const branch = await Branch.findById(branchId).populate('routes');
-
-	if (!branch) {
-		return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
-	}
+	const routes = await Route.find();
 
 	return res.status(StatusCodes.OK).json({
 		success: true,
-		data: branch.routes,
+		data: routes,
 	});
 });
 
