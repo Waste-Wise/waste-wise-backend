@@ -10,7 +10,6 @@ const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const Route = require('../models/route');
 const Schedule = require('../models/schedule');
 const Transaction = require('../models/transaction');
-const driver = require('../models/driver');
 
 // POST /create
 exports.createBranch = catchAsyncErrors(async (req, res) => {
@@ -355,22 +354,28 @@ exports.createRoute = catchAsyncErrors(async (req, res) => {
 
 	await branch.save();
 
-	res.status(StatusCodes.OK).json({
+	res.status(StatusCodes.CREATED).json({
 		success: true,
 		message: 'Route created successfully',
 		data: route,
 	});
 });
 
-// GET /routes
-exports.getAllRoutes = catchAsyncErrors(async (req, res) =>
-	Route.find().then((data) => {
-		res.status(StatusCodes.OK).json({
-			success: true,
-			data,
-		});
-	})
-);
+// GET /:branchId/routes
+exports.getAllRoutes = catchAsyncErrors(async (req, res, next) => {
+	const { branchId } = req.params;
+
+	const branch = await Branch.findById(branchId).populate('routes');
+
+	if (!branch) {
+		return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
+	}
+
+	return res.status(StatusCodes.OK).json({
+		success: true,
+		data: branch.routes,
+	});
+});
 
 // GET /:branchId/routes/:routeId
 exports.getRouteById = catchAsyncErrors(async (req, res, next) => {

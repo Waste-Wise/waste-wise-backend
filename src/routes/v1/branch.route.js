@@ -36,7 +36,7 @@ const router = express.Router();
 router.route('/create').post(createBranch);
 router.route('/').get(getAllBranches);
 
-router.route('/routes').get(getAllRoutes);
+router.route('/:branchId/routes').get(getAllRoutes);
 router
 	.route('/:branchId')
 	.get(getBranchById)
