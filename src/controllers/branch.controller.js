@@ -346,19 +346,19 @@ exports.createRoute = catchAsyncErrors(async (req, res) => {
 
 	const routeObj = req.body;
 
-	const routesCount = await Constant.findOne('maxRouteCount');
+	const maxRouteCount = await Constant.findOne();
 
-	if (!routesCount) {
-		routesCount = 0;
+	if (!maxRouteCount) {
+		const maxRouteCount = await Constant.create({
+			name: 'maxRouteCount',
+			value: 1,
+		});
+	} else {
+		maxRouteCount.value++;
+		await maxRouteCount.save();
 	}
 
-	console.log(routesCount);
-
-	Object.assign(routeObj, { route_id: routesCount });
-
-	routesCount++;
-
-	await routesCount.save();
+	Object.assign(routeObj, { route_id: `ROUTE-${  maxRouteCount.value}` });
 
 	const route = await Route.create(routeObj);
 

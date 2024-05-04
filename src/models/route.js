@@ -69,8 +69,8 @@ const routeStopSchema = new mongoose.Schema(
 const routeSchema = new mongoose.Schema(
 	{
 		route_id: {
-			type: Number,
-			required: [true],
+			type: String,
+			required: true,
 		},
 		route_name: {
 			type: String,
