@@ -270,19 +270,7 @@ const getDriversPopulatedVehicles = async (branch) => {
 exports.getDriversForBranch = catchAsyncErrors(async (req, res, next) => {
 	const { branchId } = req.params;
 
-	const branch = await Branch.findById(branchId)
-		.populate('schedules')
-		.populate({
-			path: 'schedules',
-			populate: {
-				path: 'assignedDriver',
-				model: 'Driver',
-				populate: {
-					path: 'assignedVehicle',
-					model: 'Vehicle',
-				},
-			},
-		});
+	const branch = await Branch.findById(branchId).populate('drivers');
 
 	if (!branch) {
 		return next(new ErrorHandler('Branch not found', StatusCodes.NOT_FOUND));
