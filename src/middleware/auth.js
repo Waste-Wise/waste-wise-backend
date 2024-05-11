@@ -2,83 +2,81 @@ const jwt = require('jsonwebtoken');
 const { StatusCodes } = require('http-status-codes');
 const ErrorHandler = require('../utils/ErrorHandler');
 const catchAsyncErrors = require('./catchAsyncErrors');
-const Branch = require('../models/branch');
-const Driver = require('../models/driver');
+const roles = require('../../config/role');
 
 // authenticate user by bearer token
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
-  const authHeader = req.headers['authorization'];
+	const authHeader = req.headers.authorization;
 
-  if (!authHeader) {
-    return next(
-      new ErrorHandler(
-        'Please login to access this resource',
-        StatusCodes.UNAUTHORIZED
-      )
-    );
-  }
+	if (!authHeader) {
+		return next(
+			new ErrorHandler(
+				'Please login to access this resource',
+				StatusCodes.UNAUTHORIZED
+			)
+		);
+	}
 
-  const token = authHeader?.split(' ')[1];
+	const token = authHeader.split(' ')[1];
 
-  if (token) {
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        return res.status(StatusCodes.FORBIDDEN).json({
-          success: false,
-          message: 'Invalid token',
-        });
-      }
+	if (!token) {
+		return next(new ErrorHandler('Unauthorized', StatusCodes.UNAUTHORIZED));
+	}
 
-      req.user = decoded;
-      next();
-    });
-  } else {
-    res.status(StatusCodes.UNAUTHORIZED).json({
-      success: false,
-      message: 'Unauthorized',
-    });
-  }
+	let decoded;
+
+	try {
+		decoded = jwt.verify(token, process.env.JWT_SECRET);
+	} catch (err) {
+		return next(new ErrorHandler(err, StatusCodes.FORBIDDEN));
+	}
+
+	req.user = decoded;
+
+	return next();
 });
 
 exports.isAuthorizedBranch = catchAsyncErrors(async (req, res, next) => {
-  if (req.user.role !== 'branch') {
-    return next(
-      new ErrorHandler(
-        `${req.user.role} Not allowed to access this resource`,
-        StatusCodes.FORBIDDEN
-      )
-    ); // forbid user
-  }
+	if (req.user.role !== roles.BRANCH_ROLE) {
+		return next(
+			new ErrorHandler(
+				`${req.user.role} Not allowed to access this resource`,
+				StatusCodes.FORBIDDEN
+			)
+		);
+	}
 
-  const branchId = req.params.branchId;
+	const { branchId } = req.params;
 
-  if (req.user._id !== branchId) {
-    return next(
-      new ErrorHandler(
-        `Not allowed to access this resource`,
-        StatusCodes.FORBIDDEN
-      )
-    ); // forbid user
-  }
-  next();
+	/* eslint-disable no-underscore-dangle */
+	if (req.user._id !== branchId) {
+		return next(
+			new ErrorHandler(
+				`Not allowed to access this resource`,
+				StatusCodes.FORBIDDEN
+			)
+		);
+	}
+	/* eslint-disable no-underscore-dangle */
+
+	return next();
 });
 
 exports.isVerifiedDriver = catchAsyncErrors(async (req, res, next) => {
-  if (req.user.role !== 'driver') {
-    return next(
-      new ErrorHandler(
-        `${req.user.role} Not allowed to access this resource`,
-        StatusCodes.FORBIDDEN
-      )
-    ); // forbid user
-  }
+	if (req.user.role !== roles.DRIVER_ROLE) {
+		return next(
+			new ErrorHandler(
+				`${req.user.role} Not allowed to access this resource`,
+				StatusCodes.FORBIDDEN
+			)
+		); // forbid user
+	}
 
-  if (!req.user.isVerified) {
-    return res.status(StatusCodes.UNAUTHORIZED).json({
-      success: false,
-      message: 'Driver not verified',
-    });
-  }
+	if (!req.user.isVerified) {
+		return next(
+			new ErrorHandler('Driver not verified', StatusCodes.UNAUTHORIZED)
+		);
+	}
 
-  next();
+	return next();
 });

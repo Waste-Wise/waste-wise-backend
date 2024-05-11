@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const { StatusCodes } = require('http-status-codes');
 const jwt = require('jsonwebtoken');
 const roles = require('../../config/role');
@@ -7,191 +6,205 @@ const ErrorHandler = require('../utils/ErrorHandler');
 const Branch = require('../models/branch');
 const Driver = require('../models/driver');
 
+/**
+ * Add this to a utility file
+ */
+const passwordsMatched = (password, confirmationPassword) =>
+	password === confirmationPassword;
+
 // POST /login
 exports.branchLogin = catchAsyncErrors(async (req, res, next) => {
-  const { email, password } = req.body;
+	const { email, password } = req.body;
 
-  const user = await Branch.findOne({ email: email }).select('+password');
+	const user = await Branch.findOne({ email }).select('+password');
 
-  if (!user) {
-    return next(
-      new ErrorHandler('Invalid email or password', StatusCodes.UNAUTHORIZED)
-    );
-  }
+	if (!user) {
+		return next(
+			new ErrorHandler('Invalid email or password', StatusCodes.UNAUTHORIZED)
+		);
+	}
 
-  const isPasswordsMatched = await user.comparePasswords(password);
+	const isPasswordsMatched = await user.comparePasswords(password);
 
-  if (!isPasswordsMatched) {
-    return next(new ErrorHandler('Invalid password', StatusCodes.UNAUTHORIZED));
-  }
+	if (!isPasswordsMatched) {
+		return next(new ErrorHandler('Invalid password', StatusCodes.UNAUTHORIZED));
+	}
 
-  const token = user.getJwt();
+	const token = user.getJwt();
 
-  const refresh_token = user.getRefreshToken();
+	/* eslint-disable camelcase */
+	const refresh_token = user.getRefreshToken();
 
-  res.status(StatusCodes.OK).json({
-    success: true,
-    token,
-    refresh_token,
-  });
+	return res.status(StatusCodes.OK).json({
+		success: true,
+		token,
+		refresh_token,
+	});
+	/* eslint-enable camelcase */
 });
 
 // POST /refresh
+/* eslint-disable camelcase */
 exports.refreshAuth = catchAsyncErrors(async (req, res, next) => {
-  const refresh_token = req.body.refresh_token;
+	const { refresh_token } = req.body;
 
-  if (!refresh_token) {
-    return next(
-      new ErrorHandler('Refresh token not available', StatusCodes.BAD_REQUEST)
-    );
-  }
+	if (!refresh_token) {
+		return next(
+			new ErrorHandler('Refresh token not available', StatusCodes.BAD_REQUEST)
+		);
+	}
 
-  jwt.verify(refresh_token, process.env.JWT_SECRET, async (err, decoded) => {
-    if (err) {
-      return res.status(StatusCodes.FORBIDDEN).json({
-        success: false,
-        message: 'Invalid token',
-      });
-    }
+	let decoded;
 
-    let user = undefined;
+	try {
+		decoded = jwt.verify(refresh_token, process.env.JWT_SECRET);
+	} catch (err) {
+		return next(new ErrorHandler('Invalid token', StatusCodes.FORBIDDEN));
+	}
 
-    if (decoded.role === roles.BRANCH_ROLE) {
-      user = await Branch.findById(decoded._id);
-    }
+	let user;
 
-    if (decoded.role === roles.DRIVER_ROLE) {
-      user = await Driver.findById(decoded._id);
-    }
+	/* eslint-disable no-underscore-dangle */
+	if (decoded.role === roles.BRANCH_ROLE) {
+		user = await Branch.findById(decoded._id);
+	}
 
-    if (!user) {
-      return next(new ErrorHandler('User not found', StatusCodes.NOT_FOUND));
-    }
+	if (decoded.role === roles.DRIVER_ROLE) {
+		user = await Driver.findById(decoded._id);
+	}
+	/* eslint-disable no-underscore-dangle */
 
-    const token = user.getJwt();
+	if (!user) {
+		return next(new ErrorHandler('User not found', StatusCodes.NOT_FOUND));
+	}
 
-    const refresh_token = user.getRefreshToken();
+	const token = user.getJwt();
 
-    res.status(StatusCodes.OK).json({
-      success: true,
-      token,
-      refresh_token,
-    });
-  });
+	const newRefreshToken = user.getRefreshToken();
+
+	return res.status(StatusCodes.OK).json({
+		success: true,
+		token,
+		refresh_token: newRefreshToken,
+	});
 });
+/* eslint-enable camelcase */
 
 // POST /driver/login
 exports.driverLogin = catchAsyncErrors(async (req, res, next) => {
-  const { mobileNumber, password } = req.body;
+	const { mobileNumber, password } = req.body;
 
-  const user = await Driver.findOne({ mobileNumber: mobileNumber }).select(
-    '+password'
-  );
+	const user = await Driver.findOne({ mobileNumber }).select('+password');
 
-  if (!user) {
-    return next(
-      new ErrorHandler('Invalid email or password', StatusCodes.UNAUTHORIZED)
-    );
-  }
+	if (!user) {
+		return next(
+			new ErrorHandler('Invalid mobileNumber', StatusCodes.UNAUTHORIZED)
+		);
+	}
 
-  if (!user.status) {
-    return next(
-      new ErrorHandler(
-        'Driver not permitted. Please contact the admin',
-        StatusCodes.CONFLICT
-      )
-    );
-  }
+	if (!user.status) {
+		return next(
+			new ErrorHandler(
+				'Driver not permitted. Please contact the admin',
+				StatusCodes.CONFLICT
+			)
+		);
+	}
 
-  const isPasswordsMatched = await user.comparePasswords(password);
+	const isPasswordsMatched = await user.comparePasswords(password);
 
-  if (!isPasswordsMatched) {
-    return next(new ErrorHandler('Invalid password', StatusCodes.UNAUTHORIZED));
-  }
+	if (!isPasswordsMatched) {
+		return next(new ErrorHandler('Invalid password', StatusCodes.UNAUTHORIZED));
+	}
 
-  const token = user.getJwt();
+	const token = user.getJwt();
 
-  const refresh_token = user.getRefreshToken();
+	const refreshToken = user.getRefreshToken();
 
-  res.status(StatusCodes.OK).json({
-    success: true,
-    token,
-    refresh_token,
-  });
+	/* eslint-disable camelcase */
+	return res.status(StatusCodes.OK).json({
+		success: true,
+		token,
+		refresh_token: refreshToken,
+		decoded_token: JSON.parse(
+			Buffer.from(token.split('.')[1], 'base64').toString()
+		),
+	});
+	/* eslint-enable camelcase */
 });
 
 // POST /driver/reset/request
 exports.resetPasswordRequestDriver = catchAsyncErrors(
-  async (req, res, next) => {
-    const { mobileNumber } = req.body;
+	async (req, res, next) => {
+		const { mobileNumber } = req.body;
 
-    const user = await Driver.findOne({ mobileNumber: mobileNumber });
+		const user = await Driver.findOne({ mobileNumber });
 
-    if (!user) {
-      return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
-    }
+		if (!user) {
+			return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+		}
 
-    if (!user.status) {
-      return next(
-        new ErrorHandler(
-          'Driver not permitted. Please contact the admin',
-          StatusCodes.CONFLICT
-        )
-      );
-    }
+		if (!user.status) {
+			return next(
+				new ErrorHandler(
+					'Driver not permitted. Please contact the admin',
+					StatusCodes.CONFLICT
+				)
+			);
+		}
 
-    user.isVerified = false;
+		user.isVerified = false;
 
-    await user.save();
+		await user.save();
 
-    res.status(200).json({
-      success: true,
-      message: 'Reset request success',
-    });
-  }
+		return res.status(200).json({
+			success: true,
+			message: 'Password reset request success',
+		});
+	}
 );
 
 // POST /driver/reset
 exports.resetPasswordDriver = catchAsyncErrors(async (req, res, next) => {
-  const { mobileNumber, password, confirmationPassword } = req.body;
+	const { mobileNumber, password, confirmationPassword } = req.body;
 
-  if (!passwordsMatched(password, confirmationPassword)) {
-    return next(
-      new ErrorHandler('Passwords are not identical', StatusCodes.CONFLICT)
-    );
-  }
+	if (!passwordsMatched(password, confirmationPassword)) {
+		return next(
+			new ErrorHandler('Passwords are not identical', StatusCodes.CONFLICT)
+		);
+	}
 
-  const user = await Driver.findOne({ mobileNumber: mobileNumber });
+	const user = await Driver.findOne({ mobileNumber });
 
-  if (!user) {
-    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
-  }
+	if (!user) {
+		return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+	}
 
-  if (!user.status) {
-    return next(
-      new ErrorHandler(
-        'Driver not permitted. Please contact the admin',
-        StatusCodes.CONFLICT
-      )
-    );
-  }
+	if (!user.status) {
+		return next(
+			new ErrorHandler(
+				'Driver not permitted. Please contact the admin',
+				StatusCodes.CONFLICT
+			)
+		);
+	}
 
-  if (user.isVerified) {
-    return next(
-      new ErrorHandler('Driver is already verified', StatusCodes.CONFLICT)
-    );
-  }
+	if (user.isVerified) {
+		return next(
+			new ErrorHandler(
+				'Driver is already verified. Please request for password reset first',
+				StatusCodes.CONFLICT
+			)
+		);
+	}
 
-  user.password = password;
-  user.isVerified = true;
+	user.password = password;
+	user.isVerified = true;
 
-  await user.save();
+	await user.save();
 
-  res.status(StatusCodes.ACCEPTED).json({
-    success: true,
-    message: 'Password changed successfully',
-  });
+	return res.status(StatusCodes.ACCEPTED).json({
+		success: true,
+		message: 'Password changed successfully',
+	});
 });
-
-const passwordsMatched = (password, confirmationPassword) =>
-  password === confirmationPassword;

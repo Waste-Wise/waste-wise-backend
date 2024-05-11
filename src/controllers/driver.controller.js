@@ -1,213 +1,224 @@
 const { StatusCodes } = require('http-status-codes');
-const mongoose = require('mongoose');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
 const ErrorHandler = require('../utils/ErrorHandler');
 const Driver = require('../models/driver');
 const Vehicle = require('../models/vehicle');
-
-// POST /create
-exports.createDriver = catchAsyncErrors(async (req, res, next) => {
-  const {
-    empNum,
-    name,
-    email,
-    nic,
-    mobileNumber,
-    password,
-    avatar,
-    assignedRoute,
-    assignedVehicle,
-  } = req.body;
-
-  const driverObj = {
-    empNum,
-    name,
-    email,
-    nic,
-    mobileNumber,
-    password,
-  };
-
-  if (avatar) {
-    driverObj.avatar = avatar;
-  }
-
-  if (assignedRoute) {
-    driverObj.assignedRoute = assignedRoute;
-  }
-
-  if (assignedVehicle) {
-    const vehicleObjId = new mongoose.Types.ObjectId(assignedVehicle);
-    const vehicle = await Vehicle.findById(vehicleObjId);
-
-    if (!vehicle) {
-      return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
-    }
-
-    if (vehicle.isDriverAssigned) {
-      return next(
-        new ErrorHandler('Vehicle already assigned', StatusCodes.CONFLICT)
-      );
-    }
-
-    vehicle.isDriverAssigned = true;
-
-    await vehicle.save();
-
-    driverObj.assignedVehicle = vehicleObjId;
-  }
-
-  Driver.create(driverObj).then(() => {
-    res.status(StatusCodes.CREATED).json({
-      success: true,
-      message: 'Driver created successfully',
-    });
-  });
-});
+const transactionStatus = require('../../config/constants');
+const Transaction = require('../models/transaction');
+const Route = require('../models/route');
 
 // GET /
-exports.getAllDrivers = catchAsyncErrors(async (req, res, next) => {
-  Driver.find().then((data) => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      data,
-    });
-  });
-});
+exports.getAllDrivers = catchAsyncErrors(async (req, res) =>
+	Driver.find().then((data) => {
+		res.status(StatusCodes.OK).json({
+			success: true,
+			data,
+		});
+	})
+);
 
 // GET /:id
 exports.getDriverById = catchAsyncErrors(async (req, res, next) => {
-  const id = req.params.id;
+	const { id } = req.params;
 
-  const driver = await Driver.findById(id);
+	const driver = await Driver.findById(id).populate('assignedVehicle');
 
-  if (!driver) {
-    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
-  }
+	if (!driver) {
+		return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+	}
 
-  res.status(StatusCodes.OK).json({
-    success: true,
-    data: driver,
-  });
+	return res.status(StatusCodes.OK).json({
+		success: true,
+		data: driver,
+	});
 });
 
 // PATCH /:id
 exports.updateDriverById = catchAsyncErrors(async (req, res, next) => {
-  const id = req.params.id;
+	const { id } = req.params;
 
-  const driver = await Driver.findById(id);
+	const driver = await Driver.findById(id);
 
-  if (!driver) {
-    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
-  }
+	if (!driver) {
+		return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+	}
 
-  Object.assign(driver, req.body);
+	Object.assign(driver, req.body);
 
-  await driver.save();
+	await driver.save();
 
-  res.status(StatusCodes.OK).json({
-    success: true,
-    data: driver,
-  });
+	return res.status(StatusCodes.OK).json({
+		success: true,
+		data: driver,
+	});
 });
 
 // hard delete => DELETE /:id
 exports.deleteDriverById = catchAsyncErrors(async (req, res, next) => {
-  const id = req.params.id;
+	const { id } = req.params;
 
-  const driver = await Driver.findById(id);
+	const driver = await Driver.findById(id);
 
-  if (!driver) {
-    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
-  }
+	if (!driver) {
+		return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+	}
 
-  Driver.findByIdAndDelete(id).then(() => {
-    res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'Driver deleted successfully',
-    });
-  });
+	await driver.deleteOne();
+
+	return res.status(StatusCodes.OK).json({
+		success: true,
+		message: 'Driver deleted successfully',
+	});
 });
 
 // PUT /:driverId/assign/:vehicleId
 exports.assignVehicleToDriver = catchAsyncErrors(async (req, res, next) => {
-  const { driverId, vehicleId } = req.params;
+	const { driverId, vehicleId } = req.params;
 
-  const driver = await Driver.findById(driverId);
+	const driver = await Driver.findById(driverId);
 
-  if (!driver) {
-    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
-  }
+	if (!driver) {
+		return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+	}
 
-  const vehicle = await Vehicle.findById(vehicleId);
+	const vehicle = await Vehicle.findById(vehicleId);
 
-  if (!vehicle) {
-    return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
-  }
+	if (!vehicle) {
+		return next(new ErrorHandler('Vehicle not found', StatusCodes.NOT_FOUND));
+	}
 
-  if (vehicle.isDriverAssigned) {
-    return next(
-      new ErrorHandler('Vehicle already assigned', StatusCodes.CONFLICT)
-    );
-  }
+	if (vehicle.isDriverAssigned) {
+		return next(
+			new ErrorHandler('Vehicle already assigned', StatusCodes.CONFLICT)
+		);
+	}
 
-  const previouslyAssignedVehicle = driver.assignedVehicle;
+	const previouslyAssignedVehicle = driver.assignedVehicle;
 
-  if (previouslyAssignedVehicle) {
-    await Vehicle.findByIdAndUpdate(previouslyAssignedVehicle._id, {
-      isDriverAssigned: false,
-    });
-  }
+	/* eslint-disable no-underscore-dangle */
+	if (previouslyAssignedVehicle) {
+		await Vehicle.findByIdAndUpdate(previouslyAssignedVehicle._id, {
+			isDriverAssigned: false,
+		});
+	}
+	/* eslint-disable no-underscore-dangle */
 
-  driver.assignedVehicle = vehicle._id;
-  vehicle.isDriverAssigned = true;
+	driver.assignedVehicle = vehicle._id;
+	vehicle.isDriverAssigned = true;
 
-  await driver.save();
-  await vehicle.save();
+	await driver.save();
+	await vehicle.save();
 
-  res.status(StatusCodes.OK).json({
-    status: true,
-    message: 'Driver assigned the vehicle successfully',
-  });
+	return res.status(StatusCodes.OK).json({
+		status: true,
+		message: 'Driver assigned the vehicle successfully',
+	});
 });
 
 // DELETE /:id/unassign
 exports.unassignVehicle = catchAsyncErrors(async (req, res, next) => {
-  const id = req.params.id;
+	const { id } = req.params;
 
-  const driver = await Driver.findById(id);
+	const driver = await Driver.findById(id);
 
-  if (!driver) {
-    return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
-  }
+	if (!driver) {
+		return next(new ErrorHandler('Driver not found', StatusCodes.NOT_FOUND));
+	}
 
-  if (!driver.assignedVehicle) {
-    return next(
-      new ErrorHandler(
-        'Vehicle is not assigned to the driver',
-        StatusCodes.CONFLICT
-      )
-    );
-  }
+	if (!driver.assignedVehicle) {
+		return next(
+			new ErrorHandler(
+				'Vehicle is not assigned to the driver',
+				StatusCodes.CONFLICT
+			)
+		);
+	}
 
-  await Vehicle.findByIdAndUpdate(driver.assignedVehicle._id, {
-    isDriverAssigned: false,
-  });
+	await Vehicle.findByIdAndUpdate(driver.assignedVehicle._id, {
+		isDriverAssigned: false,
+	});
 
-  driver.assignedVehicle = null;
+	driver.assignedVehicle = undefined;
 
-  await driver.save();
+	await driver.save();
 
-  res.status(StatusCodes.OK).json({
-    success: true,
-    message: 'Vehicle unassigned successfully',
-  });
+	return res.status(StatusCodes.OK).json({
+		success: true,
+		message: 'Vehicle unassigned successfully',
+	});
 });
 
 // GET /test
 exports.testController = catchAsyncErrors(async (req, res, next) => {
-  res.status(StatusCodes.OK).json({
-    success: true,
-    message: 'Driver is verified',
-  });
+	res.status(StatusCodes.OK).json({
+		success: true,
+		message: 'Driver is verified',
+	});
+});
+
+// PUT /:driverId/transactions/?taskId=TA123
+exports.setTransactionStatus = catchAsyncErrors(async (req, res, next) => {
+	const { taskId } = req.query;
+	const { status } = req.body;
+
+	const today = undefined;
+	/**
+	 * Filter by date as well!: transaction.createdAt attrib
+	 *
+	 */
+
+	const transaction = await Transaction.findOne({ taskId, today });
+
+	if (!transaction) {
+		return next(new ErrorHandler('Invalid task id', StatusCodes.BAD_REQUEST));
+	}
+
+	if (transaction.status === transactionStatus.DISABLED) {
+		return next(
+			new ErrorHandler('Transaction is disabled', StatusCodes.FORBIDDEN)
+		);
+	}
+
+	if (status === transaction.status) {
+		return next(
+			new ErrorHandler('Already in the given state', StatusCodes.BAD_REQUEST)
+		);
+	}
+
+	switch (status) {
+		case transactionStatus.ONGOING:
+			transaction.realStartTime = Date.now();
+			transaction.realEndTime = undefined;
+			break;
+		case transactionStatus.ABORTED:
+			transaction.realStartTime = undefined;
+			transaction.realEndTime = undefined;
+			break;
+		case transactionStatus.COMPLETE:
+			transaction.realEndTime = Date.now();
+			break;
+		default:
+			return next(
+				new ErrorHandler('Invalid transaction status', StatusCodes.BAD_REQUEST)
+			);
+	}
+
+	transaction.status = status;
+
+	await transaction.save();
+
+	return res.status(StatusCodes.ACCEPTED).json({
+		success: true,
+		message: `Transaction status changed to ${status}`,
+		data: transaction,
+	});
+});
+
+exports.getAllRoutes = catchAsyncErrors(async (req, res, next) => {
+	const routes = await Route.find();
+
+	res.status(StatusCodes.CREATED).json({
+		success: true,
+		data: routes,
+	});
 });
