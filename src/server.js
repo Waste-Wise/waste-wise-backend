@@ -1,7 +1,7 @@
 const dotenv = require('dotenv');
 const connectDatabase = require('../config/database');
 const app = require('./app');
-const runJobs = require('../jobs');
+const runJobs = require('./jobs');
 
 // handle uncaught exception errors
 process.on('uncaughtException', (err) => {
